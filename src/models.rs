@@ -783,29 +783,29 @@ fn prodenv(port: u32) -> ProjectFile {
     }
 }
 
-fn dbenv(user: &str, database: &str, password: &str) -> ProjectFile {
-    ProjectFile {
-        filename: "db.env".to_string(),
-        content: format!(
-            r#"POSTGRES_USER="{}"
-POSTGRES_DB="{}"
-POSTGRES_PASSWORD="{}""#,
-            user, database, password
-        ),
-    }
-}
+// fn dbenv(user: &str, database: &str, password: &str) -> ProjectFile {
+//     ProjectFile {
+//         filename: "db.env".to_string(),
+//         content: format!(
+//             r#"POSTGRES_USER="{}"
+// POSTGRES_DB="{}"
+// POSTGRES_PASSWORD="{}""#,
+//             user, database, password
+//         ),
+//     }
+// }
 
-fn proddbenv(user: &str, database: &str, password: &str) -> ProjectFile {
-    ProjectFile {
-        filename: "dbp.env".to_string(),
-        content: format!(
-            r#"POSTGRES_USER="{}"
-POSTGRES_DB="{}"
-POSTGRES_PASSWORD="{}""#,
-            user, database, password
-        ),
-    }
-}
+// fn proddbenv(user: &str, database: &str, password: &str) -> ProjectFile {
+//     ProjectFile {
+//         filename: "dbp.env".to_string(),
+//         content: format!(
+//             r#"POSTGRES_USER="{}"
+// POSTGRES_DB="{}"
+// POSTGRES_PASSWORD="{}""#,
+//             user, database, password
+//         ),
+//     }
+// }
 
 fn dockercompose(project: &str, port: u32) -> ProjectFile {
     ProjectFile {

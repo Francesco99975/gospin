@@ -1,9 +1,12 @@
-use std::{error::Error, fmt, fs::File, io::Write, process::Command};
+use std::{fs::File, io::Write, process::Command};
 
-use crate::models::{generate_project_structure, ProjectDir};
+use crate::{
+    errors::ScaffError,
+    models::{generate_project_structure, ProjectDir},
+};
 
-pub fn scaffold(project: &str) -> Result<(), ScaffError> {
-    let root = generate_project_structure(project, 8080);
+pub fn scaffold(project: &str, port: u32) -> Result<(), ScaffError> {
+    let root = generate_project_structure(project, port);
 
     dir_builder(root, format!("./{}", project))?;
 
@@ -12,7 +15,8 @@ pub fn scaffold(project: &str) -> Result<(), ScaffError> {
 
 fn dir_builder(dir: ProjectDir, depth: String) -> Result<(), ScaffError> {
     Command::new("mkdir")
-        .arg(dir.dirname)
+        .arg("-p")
+        .arg(depth.clone())
         .output()
         .map_err(|err| ScaffError {
             message: err.to_string(),
@@ -31,20 +35,8 @@ fn dir_builder(dir: ProjectDir, depth: String) -> Result<(), ScaffError> {
 
     for prj_dir in dir.dirs.unwrap_or(vec![]) {
         let new_depth = prj_dir.dirname.clone();
-        dir_builder(prj_dir, depth.clone() + &new_depth)?;
+        dir_builder(prj_dir, depth.clone() + "/" + &new_depth)?;
     }
 
     Ok(())
-}
-
-#[derive(Debug)]
-pub struct ScaffError {
-    pub message: String,
-}
-impl Error for ScaffError {}
-
-impl fmt::Display for ScaffError {
-    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(fmt, "Could not get device id - Error: {}", self.message)
-    }
 }

@@ -5,4 +5,7 @@ use clap::Parser;
 #[command(propagate_version = true)]
 pub struct Gospin {
     pub project: Option<String>,
+
+    #[arg(short = 'p', long = "port", default_value = "8080")]
+    pub port: String,
 }
