@@ -5,7 +5,7 @@ use crate::models::{generate_project_structure, ProjectDir};
 pub fn scaffold(project: &str) -> Result<(), ScaffError> {
     let root = generate_project_structure(project, 8080);
 
-    dir_builder(root, format!("./"))?;
+    dir_builder(root, format!("./{}", project))?;
 
     Ok(())
 }
