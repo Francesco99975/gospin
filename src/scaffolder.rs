@@ -1,4 +1,10 @@
-use std::{fs::File, io::Write, process::Command};
+use std::{
+    env,
+    fs::File,
+    io::{self, Write},
+    path::Path,
+    process::Command,
+};
 
 use crate::{
     errors::ScaffError,
@@ -6,9 +12,55 @@ use crate::{
 };
 
 pub fn scaffold(project: &str, port: u32) -> Result<(), ScaffError> {
-    let root = generate_project_structure(project, port);
+    // let output = Command::new("git")
+    //     .arg("config")
+    //     .arg("--get")
+    //     .arg("user.name")
+    //     .output()
+    //     .ok();
+
+    // Create a mutable String to store the user input
+    let mut input_string = String::new();
+
+    // Print a prompt to the user
+    print!("Please enter you Github username: ");
+
+    // Flush the output to ensure the prompt is displayed immediately
+    io::stdout().flush().unwrap();
+
+    // Read the user input into the String
+    io::stdin()
+        .read_line(&mut input_string)
+        .map_err(|err| ScaffError {
+            message: "go init error -> ".to_owned() + &err.to_string(),
+        })?;
+
+    let username = input_string.trim();
+
+    let import_str = format!("github.com/{}/{}", username, project);
+
+    let root = generate_project_structure(project, port, &import_str);
 
     dir_builder(root, format!("./{}", project))?;
+
+    env::set_current_dir(Path::new(&project)).expect("Could not set dir project");
+    println!("Running go init");
+    Command::new("go")
+        .arg("mod")
+        .arg("init")
+        .arg(import_str.clone())
+        .output()
+        .map_err(|err| ScaffError {
+            message: "go init error -> ".to_owned() + &err.to_string(),
+        })?;
+
+    Command::new("go")
+        .arg("mod")
+        .arg("tidy")
+        .output()
+        .map_err(|err| ScaffError {
+            message: "go init error -> ".to_owned() + &err.to_string(),
+        })?;
 
     Ok(())
 }
@@ -31,6 +83,19 @@ fn dir_builder(dir: ProjectDir, depth: String) -> Result<(), ScaffError> {
             .map_err(|err| ScaffError {
                 message: err.to_string(),
             })?;
+    }
+
+    if dir.dirname == "client" {
+        env::set_current_dir(Path::new(&depth)).expect("Could not set dir");
+        println!("Running npm");
+        Command::new("npm")
+            .arg("install")
+            .output()
+            .map_err(|err| ScaffError {
+                message: "npm error -> ".to_owned() + &err.to_string(),
+            })?;
+
+        env::set_current_dir(Path::new("../..")).expect("Could not set dir root");
     }
 
     for prj_dir in dir.dirs.unwrap_or(vec![]) {

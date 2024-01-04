@@ -9,7 +9,7 @@ pub struct ProjectDir {
     pub dirs: Option<Vec<ProjectDir>>,
 }
 
-pub fn generate_project_structure(project: &str, port: u32) -> ProjectDir {
+pub fn generate_project_structure(project: &str, port: u32, import_str: &str) -> ProjectDir {
     ProjectDir {
         dirname: project.to_string(),
         files: Some(vec![
@@ -39,9 +39,9 @@ pub fn generate_project_structure(project: &str, port: u32) -> ProjectDir {
                 files: None,
             },
             client_dir(),
-            cmd_dir(),
-            internal(),
-            views(),
+            cmd_dir(import_str),
+            internal(import_str),
+            views(import_str),
         ]),
     }
 }
@@ -115,6 +115,37 @@ window.htmx = htmx;"#
         dirname: format!("src"),
         files: Some(vec![indexts]),
         dirs: Some(vec![css, fonts]),
+    };
+
+    let package = ProjectFile {
+        filename: format!("package.json"),
+        content: r#"{
+  "name": "client",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build:watch": "vite build --watch",
+    "build": "vite build",
+    "lint": "eslint . --ext .ts",
+    "lint:fix": "eslint . --ext .ts --fix",
+    "prettier": "prettier --write src/"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "htmx.org": "^1.9.10"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.31",
+    "tailwindcss": "^3.3.5",
+    "typescript": "^5.3.2",
+    "vite": "^5.0.3"
+  }
+}"#
+        .to_string(),
     };
 
     let postcss = ProjectFile {
@@ -205,11 +236,11 @@ export default {
     ProjectDir {
         dirname: format!("client"),
         dirs: Some(vec![src]),
-        files: Some(vec![postcss, tailwind, tsconfig, vite]),
+        files: Some(vec![package, postcss, tailwind, tsconfig, vite]),
     }
 }
 
-fn cmd_dir() -> ProjectDir {
+fn cmd_dir(import_str: &str) -> ProjectDir {
     let config_go = ProjectFile {
         filename: format!("config.go"),
         content: r#"package boot
@@ -240,20 +271,21 @@ func LoadEnvVariables() error {
 
     let main_go = ProjectFile {
         filename: format!("main.go"),
-        content: r#"package main
+        content: format!(
+            r#"package main
 
 import (
 	"fmt"
 	"os"
 
-	"github.com/Francesco99975/htmx_go_echo/cmd/boot"
+	"{}/cmd/boot"
 )
 
-func main() {
+func main() {{
 	err := boot.LoadEnvVariables()
-	if err != nil {
+	if err != nil {{
 		panic(err)
-	}
+	}}
 
 	port := os.Getenv("PORT")
 
@@ -263,29 +295,31 @@ func main() {
 
 	fmt.Printf("Running Server on port %s", port)
 	e.Logger.Fatal(e.Start(":" + port))
-}"#
-        .to_string(),
+}}"#,
+            import_str
+        ),
     };
 
     let router_go = ProjectFile {
         filename: format!("router.go"),
-        content: r#"package main
+        content: format!(
+            r#"package main
 
 import (
 	"bytes"
 	"context"
 	"net/http"
 
-	"github.com/Francesco99975/htmx_go_echo/internal/controllers"
-	// "github.com/Francesco99975/htmx_go_echo/internal/middlewares"
-	"github.com/Francesco99975/htmx_go_echo/internal/models"
-	"github.com/Francesco99975/htmx_go_echo/views"
+	"{0}/internal/controllers"
+	// "{0}/internal/middlewares"
+	"{0}/internal/models"
+	"{0}/views"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
 
-func createRouter() *echo.Echo {
+func createRouter() *echo.Echo {{
 	e := echo.New()
 	e.Use(middleware.Logger())
 
@@ -296,28 +330,29 @@ func createRouter() *echo.Echo {
 	e.HTTPErrorHandler = serverErrorHandler
 
 	return e
-}
+}}
 
-func serverErrorHandler(err error, c echo.Context) {
+func serverErrorHandler(err error, c echo.Context) {{
 	code := http.StatusInternalServerError
-	if he, ok := err.(*echo.HTTPError); ok {
+	if he, ok := err.(*echo.HTTPError); ok {{
 		code = he.Code
-	}
+	}}
 	data := models.GetDefaultSite("Error")
 
 	buf := bytes.NewBuffer(nil)
-	if code < 500 {
+	if code < 500 {{
 		_ = views.ClientError(data, err).Render(context.Background(), buf)
 
-	} else {
+	}} else {{
 		_ = views.ServerError(data, err).Render(context.Background(), buf)
-	}
+	}}
 
 	_ = c.Blob(200, "text/html; charset=utf-8", buf.Bytes())
 
-}
-"#
-        .to_string(),
+}}
+"#,
+            import_str
+        ),
     };
 
     let server = ProjectDir {
@@ -333,34 +368,36 @@ func serverErrorHandler(err error, c echo.Context) {
     }
 }
 
-fn internal() -> ProjectDir {
+fn internal(import_str: &str) -> ProjectDir {
     let index_go = ProjectFile {
         filename: format!("index.go"),
-        content: r#"package controllers
+        content: format!(
+            r#"package controllers
 
 import (
 	"net/http"
 
-	"github.com/Francesco99975/htmx_go_echo/internal/helpers"
-	"github.com/Francesco99975/htmx_go_echo/internal/models"
-	"github.com/Francesco99975/htmx_go_echo/views"
+	"{0}/internal/helpers"
+	"{0}/internal/models"
+	"{0}/views"
 	"github.com/labstack/echo/v4"
 )
 
-func Index() echo.HandlerFunc {
-	return func(c echo.Context) error {
+func Index() echo.HandlerFunc {{
+	return func(c echo.Context) error {{
 		data := models.GetDefaultSite("Home")
 
 		html, err := helpers.GeneratePage(views.Index(data))
 
-		if err != nil {
+		if err != nil {{
 			return echo.NewHTTPError(http.StatusBadRequest, "Could not parse page home")
-		}
+		}}
 
 		return c.Blob(200, "text/html; charset=utf-8", html)
-	}
-}"#
-        .to_string(),
+	}}
+}}"#,
+            import_str
+        ),
     };
 
     let controllers = ProjectDir {
@@ -408,7 +445,7 @@ func GeneratePage(page templ.Component) ([]byte, error) {
     };
 
     let site = ProjectFile {
-        filename: format!("page.go"),
+        filename: format!("site.go"),
         content: r#"package models
 
 import "time"
@@ -449,7 +486,7 @@ func GetDefaultSite(title string) Site {
     }
 }
 
-fn views() -> ProjectDir {
+fn views(import_str: &str) -> ProjectDir {
     let header = ProjectFile {
         filename: format!("header.templ"),
         content: r#"package components
@@ -543,42 +580,43 @@ templ Footer(year string) {
 
     let core = ProjectFile {
         filename: format!("core.templ"),
-        content: r#"package layouts
+        content: format!(
+            r#"package layouts
 
-import "github.com/Francesco99975/htmx_go_echo/internal/models"
-import "github.com/Francesco99975/htmx_go_echo/views/components"
+import "{0}/internal/models"
+import "{0}/views/components"
 import "strconv"
 
-templ CoreHTML(site models.Site) {
+templ CoreHTML(site models.Site) {{
 	<!DOCTYPE html>
 	<html lang="en">
 		<head>
 			<meta name="viewport" content="width=device-width, initial-scale=1"/>
-			<title>{ site.AppName } | { site.Title }</title>
+			<title>{{ site.AppName }} | {{ site.Title }}</title>
 			<link rel="icon" href="/assets/images/favicon.ico" type="image/x-icon"/>
 			<meta charset="utf-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1"/>
 			<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-			<meta name="description" content={ site.Metatags.Description }/>
-			<meta name="keywords" content={ site.Metatags.Keywords }/>
+			<meta name="description" content={{ site.Metatags.Description }}/>
+			<meta name="keywords" content={{ site.Metatags.Keywords }}/>
 			<meta name="author" content="Francecsco Michele Barranca"/>
 			<meta name="robots" content="index, follow"/>
 			<link rel="canonical" href="https://example.urx.ink"/>
 			<script type="application/ld+json">
-                {
+                {{
                     "@context": "http://schema.org",
                     "@type": "Organization",
                     "name": "URX",
                     "url": "https://example.urx.ink",
                     "logo": "https://example.urx.ink/assets/images/logo.webp",
                     "contactPoint": [
-                        {
+                        {{
                             "@type": "ContactPoint",
                             "telephone": "+1",
                             "contactType": "Kal"
-                        }
+                        }}
                     ]
-                }
+                }}
                 </script>
 			<script type="module" src="/assets/dist/index.js"></script>
 			<link rel="stylesheet" href="/assets/dist/index.css"/>
@@ -586,13 +624,14 @@ templ CoreHTML(site models.Site) {
 		<body class="h-full w-full flex flex-col justify-stretch items-stretch relative">
 			<div id="indicator" class="htmx-indicator w-full h-screen absolute bottom-0 right-0 z-50 flex bg-slate-700 opacity-70 justify-center items-center"><div class="loader"></div></div>
 			@components.Header()
-			{ children... }
+			{{ children... }}
 			@components.Footer(strconv.Itoa(site.Year))
 		</body>
 	</html>
-}
-"#
-        .to_string(),
+}}
+"#,
+            import_str
+        ),
     };
 
     let layouts = ProjectDir {
@@ -609,60 +648,66 @@ templ CoreHTML(site models.Site) {
 
     let client_error = ProjectFile {
         filename: format!("404.templ"),
-        content: r#"package views
+        content: format!(
+            r#"package views
 
-import "github.com/Francesco99975/htmx_go_echo/internal/models"
-import "github.com/Francesco99975/htmx_go_echo/views/layouts"
+import "{0}/internal/models"
+import "{0}/views/layouts"
 
-templ ClientError(site models.Site, err error) {
-	@layouts.CoreHTML(site) {
+templ ClientError(site models.Site, err error) {{
+	@layouts.CoreHTML(site) {{
 		<main class="flex flex-col w-full justify-center items-center text-center h-[80vh]">
 			<h1 class="rounded-sm text-2xl p-2 my-3 bg-red-800 shadow-xl text-white text-center">404 - Page not found</h1>
-			<p class=" rounded-sm text-2xl p-2 my-3 bg-red-800 shadow-xl text-white w-full text-center tracking-wider">{ err.Error() }</p>
+			<p class=" rounded-sm text-2xl p-2 my-3 bg-red-800 shadow-xl text-white w-full text-center tracking-wider">{{ err.Error() }}</p>
 			<a class="rounded p-2 my-5 text-center italic shadow-2xl bg-green-800 text-white w-3/4 text-xl" href="/">Go back</a>
 		</main>
-	}
-}
-"#
-        .to_string(),
+	}}
+}}
+"#,
+            import_str
+        ),
     };
 
     let server_error = ProjectFile {
         filename: format!("500.templ"),
-        content: r#"package views
+        content: format!(
+            r#"package views
 
-import "github.com/Francesco99975/htmx_go_echo/internal/models"
-import "github.com/Francesco99975/htmx_go_echo/views/layouts"
+import "{0}/internal/models"
+import "{0}/views/layouts"
 
-templ ServerError(site models.Site, err error) {
-	@layouts.CoreHTML(site) {
+templ ServerError(site models.Site, err error) {{
+	@layouts.CoreHTML(site) {{
 		<main class="flex flex-col w-full justify-center items-center text-center h-[80vh]">
 			<h1 class="rounded-sm text-2xl p-2 my-3 bg-red-800 shadow-xl text-white text-center">500 - Server encoutered an error</h1>
-			<p class=" rounded-sm text-2xl p-2 my-3 bg-red-800 shadow-xl text-white w-full text-center tracking-wider">{ err.Error() }</p>
+			<p class=" rounded-sm text-2xl p-2 my-3 bg-red-800 shadow-xl text-white w-full text-center tracking-wider">{{ err.Error() }}</p>
 			<a class="rounded p-2 my-5 text-center italic shadow-2xl bg-green-800 text-white w-3/4 text-xl" href="/">Go back</a>
 		</main>
-	}
-}
-"#
-        .to_string(),
+	}}
+}}
+"#,
+            import_str
+        ),
     };
 
     let index_html = ProjectFile {
         filename: format!("index.templ"),
-        content: r#"package views
+        content: format!(
+            r#"package views
 
-import "github.com/Francesco99975/htmx_go_echo/internal/models"
-import "github.com/Francesco99975/htmx_go_echo/views/layouts"
+import "{0}/internal/models"
+import "{0}/views/layouts"
 
-templ Index(site models.Site) {
-	@layouts.CoreHTML(site) {
+templ Index(site models.Site) {{
+	@layouts.CoreHTML(site) {{
 		<main class="flex flex-col w-full justify-center items-center min-h-[100vh]">
 			<h1 class="text-2xl text-primary font-bold my-2">Hello GO+HTMX</h1>
 		</main>
-	}
-}
-"#
-        .to_string(),
+	}}
+}}
+"#,
+            import_str
+        ),
     };
 
     ProjectDir {
