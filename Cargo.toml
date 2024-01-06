@@ -2,7 +2,7 @@
 name = "gospin"
 version = "0.1.0"
 authors = ["Francesco Michele Barranca kalairendev@francescobarranca.dev"]
-license = "BSD 4-Clause"
+license = "BSD-3-Clause"
 description = "A cli tool to create a boilerplate project GO + HTMX"
 readme = "README.md"
 homepage = "https://github.com/Francesco99975/gospin"
