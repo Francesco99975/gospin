@@ -494,7 +494,7 @@ fn views(import_str: &str) -> ProjectDir {
 templ Header() {
 	<header class="flex justify-between items-center bg-std text-center text-primary rounded-b w-full h-24 p-4 sticky top-0 right-0 z-20">
 		<div class="flex items-center p-2 w-[35%]">
-			<img src="/assets/images/logo.webp" alt="AS Concrete Logo" width="85px" height="85px"/>
+			<img src="/assets/images/logo.webp" alt="App Logo" width="85px" height="85px"/>
 			<h1 class="ml-8 text-3xl"><a href="/">Title</a></h1>
 		</div>
 		<nav class="md:w-auto">
@@ -564,7 +564,7 @@ templ Header() {
 templ Footer(year string) {
 	<footer class="bg-primary text-std p-3 text-center">
 		<p class="text-sm">
-			&copy; { year } AS Concrete. All rights reserved.
+			&copy; { year } GoApp. All rights reserved.
 		</p>
 	</footer>
 }
@@ -601,19 +601,19 @@ templ CoreHTML(site models.Site) {{
 			<meta name="keywords" content={{ site.Metatags.Keywords }}/>
 			<meta name="author" content="Francecsco Michele Barranca"/>
 			<meta name="robots" content="index, follow"/>
-			<link rel="canonical" href="https://example.urx.ink"/>
+			<link rel="canonical" href="https://example.com"/>
 			<script type="application/ld+json">
                 {{
                     "@context": "http://schema.org",
                     "@type": "Organization",
                     "name": "URX",
-                    "url": "https://example.urx.ink",
-                    "logo": "https://example.urx.ink/assets/images/logo.webp",
+                    "url": "https://example.com",
+                    "logo": "https://example.com/assets/images/logo.webp",
                     "contactPoint": [
                         {{
                             "@type": "ContactPoint",
                             "telephone": "+1",
-                            "contactType": "Kal"
+                            "contactType": ""
                         }}
                     ]
                 }}
