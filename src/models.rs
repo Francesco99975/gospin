@@ -606,7 +606,7 @@ templ CoreHTML(site models.Site) {{
                 {{
                     "@context": "http://schema.org",
                     "@type": "Organization",
-                    "name": "URX",
+                    "name": "GoApp",
                     "url": "https://example.com",
                     "logo": "https://example.com/assets/images/logo.webp",
                     "contactPoint": [
@@ -863,7 +863,7 @@ services:
     container_name: {0}
     image: {0}
     labels:
-      - traefik.http.routers.{0}.rule=Host(`{0}.dmz.urx.ink`)
+      - traefik.http.routers.{0}.rule=Host(`{0}.example.com`)
       - traefik.http.routers.{0}.entrypoints=web,websecure
       - traefik.http.routers.{0}.service={0}
       - traefik.http.services.{0}.loadbalancer.server.port={1}
