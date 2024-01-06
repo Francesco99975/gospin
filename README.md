@@ -4,8 +4,20 @@
 
 ## Install
 
-> cargo install gospin
+```bash
+cargo install gospin
+```
 
-## Usage
+## **Usage**
 
-> gospin \<project-name\>
+```bash
+gospin --help
+```
+
+```bash
+gospin <project-name>
+```
+
+```bash
+gospin <project-name> --port 8080
+```
