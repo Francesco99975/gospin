@@ -1,7 +1,16 @@
 [package]
 name = "gospin"
 version = "0.1.0"
+authors = ["Francesco Michele Barranca kalairendev@francescobarranca.dev"]
+license = "BSD 4-Clause"
+description = "A cli tool to create a boilerplate project GO + HTMX"
+readme = "README.md"
+homepage = "https://github.com/Francesco99975/gospin"
+repository = "https://github.com/Francesco99975/gospin"
+keywords = ["cli", "go", "htmx", "tools", "server"]
+categories = ["command-line-utilities"]
 edition = "2021"
+
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
