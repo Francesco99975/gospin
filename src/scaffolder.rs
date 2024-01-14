@@ -1,6 +1,6 @@
 use std::{
     env,
-    fs::{File, OpenOptions},
+    fs::File,
     io::{self, Write},
     path::Path,
     process::Command,
@@ -12,13 +12,6 @@ use crate::{
 };
 
 pub fn scaffold(project: &str, port: u32) -> Result<(), ScaffError> {
-    // let output = Command::new("git")
-    //     .arg("config")
-    //     .arg("--get")
-    //     .arg("user.name")
-    //     .output()
-    //     .ok();
-
     // Create a mutable String to store the user input
     let mut input_string = String::new();
 
@@ -54,26 +47,13 @@ pub fn scaffold(project: &str, port: u32) -> Result<(), ScaffError> {
             message: "go init error -> ".to_owned() + &err.to_string(),
         })?;
 
-    let mut file = OpenOptions::new()
-        .create(false)
-        .write(false)
-        .append(true)
-        .open("go.mod")
-        .map_err(|err| ScaffError {
-            message: "go init error -> ".to_owned() + &err.to_string(),
-        })?;
-
-    let content = r#"
-require (
-	github.com/a-h/templ v0.2.513
-	github.com/joho/godotenv v1.5.1
-	github.com/labstack/echo/v4 v4.11.4
-)"#;
-
-    let _ = file.write_all(content.as_bytes());
-
     Command::new("go")
         .arg("get")
+        .args(vec![
+            "github.com/labstack/echo/v4",
+            "github.com/a-h/templ",
+            "github.com/joho/godotenv",
+        ])
         .output()
         .map_err(|err| ScaffError {
             message: "go init error -> ".to_owned() + &err.to_string(),
