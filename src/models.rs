@@ -311,7 +311,6 @@ import (
 	"net/http"
 
 	"{0}/internal/controllers"
-	// "{0}/internal/middlewares"
 	"{0}/internal/models"
 	"{0}/views"
 
