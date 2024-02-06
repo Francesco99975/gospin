@@ -110,3 +110,11 @@ fn dir_builder(dir: ProjectDir, depth: String) -> Result<(), ScaffError> {
 
     Ok(())
 }
+
+#[test]
+fn test_generate_project_structure() {
+    let proj_dir = generate_project_structure("testproj", 8080, "github.com/test");
+
+    assert!(proj_dir.dirs.unwrap().len() > 0);
+    assert!(proj_dir.files.unwrap().len() > 0);
+}

@@ -1,6 +1,6 @@
 [package]
 name = "gospin"
-version = "0.1.2"
+version = "0.1.5"
 authors = ["Francesco Michele Barranca kalairendev@francescobarranca.dev"]
 license = "BSD-3-Clause"
 description = "A cli tool to create a boilerplate project GO + HTMX"
