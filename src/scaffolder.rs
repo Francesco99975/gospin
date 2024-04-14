@@ -37,7 +37,7 @@ pub fn scaffold(project: &str, port: u32) -> Result<(), ScaffError> {
     dir_builder(root, format!("./{}", project))?;
 
     env::set_current_dir(Path::new(&project)).expect("Could not set dir project");
-    println!("Running go init");
+    println!("Initializing Project");
     Command::new("go")
         .arg("mod")
         .arg("init")
@@ -47,16 +47,28 @@ pub fn scaffold(project: &str, port: u32) -> Result<(), ScaffError> {
             message: "go init error -> ".to_owned() + &err.to_string(),
         })?;
 
+    println!("Installing Go Packages");
     Command::new("go")
         .arg("get")
         .args(vec![
             "github.com/labstack/echo/v4",
+            "github.com/labstack/echo/v4/middleware",
             "github.com/a-h/templ",
             "github.com/joho/godotenv",
+            "github.com/jmoiron/sqlx",
+            "github.com/lib/pq",
         ])
         .output()
         .map_err(|err| ScaffError {
             message: "go init error -> ".to_owned() + &err.to_string(),
+        })?;
+
+    println!("Compiling Boilerplate Templ");
+    Command::new("templ")
+        .arg("generate")
+        .output()
+        .map_err(|err| ScaffError {
+            message: "templ error -> ".to_owned() + &err.to_string(),
         })?;
 
     Command::new("go")

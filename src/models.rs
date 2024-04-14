@@ -1,3 +1,5 @@
+use std::vec;
+
 pub struct ProjectFile {
     pub filename: String,
     pub content: String,
@@ -83,9 +85,87 @@ html {
         .to_string(),
     };
 
+    let counter = ProjectFile {
+        content: r#"import { LitElement, html, css } from "lit";
+import { property } from "lit/decorators.js";
+
+export class UCounter extends LitElement {
+  @property({ type: String })
+  idd: string = "";
+
+  @property({ type: Number })
+  min: number = 0;
+
+  @property({ type: Number })
+  value: number = 0;
+
+  static styles = css`
+    div.flex {
+      display: flex;
+      align-items: center;
+      justify-content: space-evenly;
+      width: 100%;
+    }
+
+    button {
+      border-width: 4px;
+      width: 3rem;
+      height: 3rem;
+      --tw-border-opacity: 1;
+      border-color: rgb(var(--color-primary) / var(--tw-border-opacity));
+      border-style: solid;
+      border-radius: 9999px;
+      text-align: center;
+      --tw-text-opacity: 1;
+      color: rgb(var(--color-primary) / var(--tw-text-opacity));
+      font-weight: 700;
+      font-size: 1.875rem;
+      line-height: 2.25rem;
+    }
+  `;
+
+  private _increase() {
+    this.value = +this.value + 1;
+  }
+
+  private _decrease() {
+    if (+this.value > +this.min) {
+      this.value = +this.value - 1;
+    }
+  }
+
+  protected render() {
+    return html`
+      <div class="flex">
+        <input
+          id="${"qty" + this.idd}"
+          min="${this.min.toString()}"
+          value="${this.value.toString()}"
+          type="hidden"
+        />
+        <button id="${"dec" + this.idd}" @click="${this._decrease}">-</button>
+        <span class="text-xl md:text-3xl font-bold p-2 text-center"
+          >${this.value}</span
+        >
+        <button id="${"inc" + this.idd}" @click="${this._increase}">+</button>
+      </div>
+    `;
+  }
+}
+"#
+        .to_string(),
+        filename: "ucounter.ts".to_string(),
+    };
+
     let css = ProjectDir {
         dirname: format!("css"),
         files: Some(vec![style]),
+        dirs: None,
+    };
+
+    let components = ProjectDir {
+        dirname: format!("components"),
+        files: Some(vec![counter]),
         dirs: None,
     };
 
@@ -114,7 +194,7 @@ window.htmx = htmx;"#
     let src = ProjectDir {
         dirname: format!("src"),
         files: Some(vec![indexts]),
-        dirs: Some(vec![css, fonts]),
+        dirs: Some(vec![css, fonts, components]),
     };
 
     let package = ProjectFile {
@@ -135,7 +215,8 @@ window.htmx = htmx;"#
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "htmx.org": "^1.9.10"
+    "htmx.org": "^1.9.10",
+    "lit": "^3.1.2"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.16",
@@ -273,12 +354,15 @@ func LoadEnvVariables() error {
         filename: format!("main.go"),
         content: format!(
             r#"package main
-
 import (
+    "context"
 	"fmt"
 	"os"
+    "os/signal"
+	"time"
 
-	"{}/cmd/boot"
+	"{0}/cmd/boot"
+    "{0}/internal/models"
 )
 
 func main() {{
@@ -289,12 +373,23 @@ func main() {{
 
 	port := os.Getenv("PORT")
 
-	// models.Setup(os.Getenv("DSN"))
+	models.Setup(os.Getenv("DSN"))
 
 	e := createRouter()
 
-	fmt.Printf("Running Server on port %s", port)
-	e.Logger.Fatal(e.Start(":" + port))
+    go func() {{
+		fmt.Printf("Running Server on port %s", port)
+		e.Logger.Fatal(e.Start(":" + port))
+	}}()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt)
+	<-quit
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := e.Shutdown(ctx); err != nil {{
+		e.Logger.Fatal(err)
+	}}
 }}"#,
             import_str
         ),
@@ -309,6 +404,7 @@ import (
 	"bytes"
 	"context"
 	"net/http"
+    "time"
 
 	"{0}/internal/controllers"
 	"{0}/internal/models"
@@ -316,11 +412,19 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+    "github.com/labstack/gommon/log"
 )
 
 func createRouter() *echo.Echo {{
 	e := echo.New()
 	e.Use(middleware.Logger())
+    e.Use(middleware.Recover())
+	e.Use(middleware.RemoveTrailingSlash())
+	e.Logger.SetLevel(log.INFO)
+    e.GET("/healthcheck", func(c echo.Context) error {{
+		time.Sleep(5 * time.Second)
+		return c.JSON(http.StatusOK, "OK")
+	}})
 
 	e.Static("/assets", "./static")
 
@@ -443,6 +547,43 @@ func GeneratePage(page templ.Component) ([]byte, error) {
         dirs: None,
     };
 
+    let db = ProjectFile {
+        content: r#"package models
+
+import (
+	"log"
+	"os"
+
+	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
+)
+
+var db *sqlx.DB
+
+func Setup(dsn string) {
+	var err error
+	db, err = sqlx.Connect("postgres", dsn)
+	if err != nil {
+        log.Fatalln(err)
+  }
+
+	err = db.Ping()
+	if err != nil {
+        log.Fatalln(err)
+  }
+
+	schema, err := os.ReadFile("sql/init.sql")
+	if err != nil {
+        log.Fatalln(err)
+  }
+
+	db.MustExec(string(schema))
+}
+"#
+        .to_string(),
+        filename: "db.go".to_string(),
+    };
+
     let site = ProjectFile {
         filename: format!("site.go"),
         content: r#"package models
@@ -474,7 +615,7 @@ func GetDefaultSite(title string) Site {
 
     let models = ProjectDir {
         dirname: format!("models"),
-        files: Some(vec![site]),
+        files: Some(vec![site, db]),
         dirs: None,
     };
 
