@@ -16,3 +16,4 @@ edition = "2021"
 
 [dependencies]
 clap = { version = "4.4.11", features = ["derive"] }
+console = { version = "0.15.8", default-features = false, features = ["ansi-parsing"] }

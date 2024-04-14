@@ -11,6 +11,8 @@ use crate::{
     models::{generate_project_structure, ProjectDir},
 };
 
+use console::style;
+
 pub fn scaffold(project: &str, port: u32) -> Result<(), ScaffError> {
     // Create a mutable String to store the user input
     let mut input_string = String::new();
@@ -37,7 +39,7 @@ pub fn scaffold(project: &str, port: u32) -> Result<(), ScaffError> {
     dir_builder(root, format!("./{}", project))?;
 
     env::set_current_dir(Path::new(&project)).expect("Could not set dir project");
-    println!("Initializing Project");
+    println!("{} Initializing Project...", style("[2/5]").bold().dim());
     Command::new("go")
         .arg("mod")
         .arg("init")
@@ -47,7 +49,7 @@ pub fn scaffold(project: &str, port: u32) -> Result<(), ScaffError> {
             message: "go init error -> ".to_owned() + &err.to_string(),
         })?;
 
-    println!("Installing Go Packages");
+    println!("{} Installing Go Packages...", style("[3/5]").bold().dim());
     Command::new("go")
         .arg("get")
         .args(vec![
@@ -63,7 +65,10 @@ pub fn scaffold(project: &str, port: u32) -> Result<(), ScaffError> {
             message: "go init error -> ".to_owned() + &err.to_string(),
         })?;
 
-    println!("Compiling Boilerplate Templ");
+    println!(
+        "{} Compiling Boilerplate Templ...",
+        style("[4/5]").bold().dim()
+    );
     Command::new("templ")
         .arg("generate")
         .output()
@@ -71,6 +76,7 @@ pub fn scaffold(project: &str, port: u32) -> Result<(), ScaffError> {
             message: "templ error -> ".to_owned() + &err.to_string(),
         })?;
 
+    println!("{} Tidying Up...", style("[5/5]").bold().dim());
     Command::new("go")
         .arg("mod")
         .arg("tidy")
@@ -104,7 +110,7 @@ fn dir_builder(dir: ProjectDir, depth: String) -> Result<(), ScaffError> {
 
     if dir.dirname == "client" {
         env::set_current_dir(Path::new(&depth)).expect("Could not set dir");
-        println!("Running npm");
+        println!("{} Running npm install...", style("[1/5]").bold().dim());
         Command::new("npm")
             .arg("install")
             .output()
