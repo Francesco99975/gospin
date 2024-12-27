@@ -1,0 +1,32 @@
+services:
+  go_boilerplate:
+    container_name: go_boilerplate
+    image: go_boilerplate
+    labels:
+      - traefik.http.routers.go_boilerplate.rule=Host(`go_boilerplate.example.com`)
+      - traefik.http.routers.go_boilerplate.entrypoints=web,websecure
+      - traefik.http.routers.go_boilerplate.service=go_boilerplate
+      - traefik.http.services.go_boilerplate.loadbalancer.server.port=__port__
+      - traefik.http.routers.go_boilerplate.tls=true
+      - traefik.http.routers.go_boilerplate.tls.certresolver=le
+      - traefik.port=80
+    networks:
+      - go_boilerplatenet
+      - proxy
+    ports:
+      - __port__:__port__
+
+networks:
+  proxy:
+    external: true
+  go_boilerplatenet:
+    driver: bridge
+    external: false
+
+volumes:
+  go_boilerplatepgdata:
+    driver: local
+  go_boilerplatepgconf:
+    driver: local
+  go_boilerplatepglog:
+    driver: local
