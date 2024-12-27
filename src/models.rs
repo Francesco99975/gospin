@@ -1,10 +1,13 @@
+use serde::Serialize;
 use std::vec;
 
+#[derive(Debug, Serialize)]
 pub struct ProjectFile {
     pub filename: String,
     pub content: String,
 }
 
+#[derive(Debug, Serialize)]
 pub struct ProjectDir {
     pub dirname: String,
     pub files: Option<Vec<ProjectFile>>,
