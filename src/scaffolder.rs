@@ -12,6 +12,7 @@ use crate::{
 };
 
 use console::style;
+use regex::Regex;
 
 mod generated_project {
     include!(concat!(env!("OUT_DIR"), "/generated_project.rs"));
@@ -43,7 +44,7 @@ pub fn scaffold(
                     message: "go init error -> ".to_owned() + &err.to_string(),
                 })?;
 
-            input_string
+            input_string.trim().replace("\n", "")
         }
     };
 
@@ -138,11 +139,19 @@ fn dir_builder(dir: ProjectDir, depth: String, injects: &Injectables) -> Result<
             .replace("__port__", injects.port.to_string().as_str());
 
         if injects.ws {
+            prj_file.content = prj_file.content.replace("//--", "");
             prj_file.content = prj_file.content.replace("#--", "");
+        } else {
+            let re = Regex::new(r"(//|#)--[^\n]*\n").unwrap();
+            prj_file.content = re.replace_all(&prj_file.content, "").to_string();
         }
 
         if injects.db {
-            prj_file.content = prj_file.content.replace("#---", "");
+            prj_file.content = prj_file.content.replace("//==", "");
+            prj_file.content = prj_file.content.replace("#==", "");
+        } else {
+            let re = Regex::new(r"(//|#)==[^\n]*\n").unwrap();
+            prj_file.content = re.replace_all(&prj_file.content, "").to_string();
         }
 
         let mut file =
@@ -175,11 +184,3 @@ fn dir_builder(dir: ProjectDir, depth: String, injects: &Injectables) -> Result<
 
     Ok(())
 }
-
-// #[test]
-// fn test_generate_project_structure() {
-//     let proj_dir = generate_project_structure("testproj", 8080, "github.com/test");
-
-//     assert!(proj_dir.dirs.unwrap().len() > 0);
-//     assert!(proj_dir.files.unwrap().len() > 0);
-// }

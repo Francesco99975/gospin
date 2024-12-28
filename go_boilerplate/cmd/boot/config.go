@@ -11,7 +11,7 @@ type Config struct {
 	Port  string
 	Host  string
 	GoEnv string
-	//---DSN   string
+	//==DSN   string
 }
 
 var Environment = &Config{}
@@ -25,7 +25,7 @@ func LoadEnvVariables() error {
 	Environment.Port = os.Getenv("PORT")
 	Environment.Host = os.Getenv("HOST")
 	Environment.GoEnv = os.Getenv("GO_ENV")
-	//---Environment.DSN = os.Getenv("DSN")
+	//==Environment.DSN = os.Getenv("DSN")
 
 	return err
 }

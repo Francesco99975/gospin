@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/__username__/go_boilerplate/cmd/boot"
+	//=="github.com/__username__/go_boilerplate/cmd/database"
 )
 
 func main() {
@@ -23,7 +24,7 @@ func main() {
 
 	port := boot.Environment.Port
 
-	//---models.Setup(boot.Environment.DNS)
+	//==database.Setup(boot.Environment.DNS)
 
 	e := createRouter(ctx)
 
