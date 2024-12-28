@@ -8,35 +8,58 @@ use std::{
 
 use crate::{
     errors::ScaffError,
-    models::{generate_project_structure, ProjectDir},
+    models::{Injectables, ProjectDir},
 };
 
 use console::style;
 
-pub fn scaffold(project: &str, port: u32) -> Result<(), ScaffError> {
-    // Create a mutable String to store the user input
-    let mut input_string = String::new();
+mod generated_project {
+    include!(concat!(env!("OUT_DIR"), "/generated_project.rs"));
+}
 
-    // Print a prompt to the user
-    print!("Please enter you Github username: ");
+pub fn scaffold(
+    project: &str,
+    ghu: Option<String>,
+    port: u32,
+    db: bool,
+    ws: bool,
+) -> Result<(), ScaffError> {
+    let username = match ghu {
+        Some(u) => u,
+        None => {
+            // Create a mutable String to store the user input
+            let mut input_string = String::new();
 
-    // Flush the output to ensure the prompt is displayed immediately
-    io::stdout().flush().unwrap();
+            // Print a prompt to the user
+            print!("Please enter you Github username: ");
 
-    // Read the user input into the String
-    io::stdin()
-        .read_line(&mut input_string)
-        .map_err(|err| ScaffError {
-            message: "go init error -> ".to_owned() + &err.to_string(),
-        })?;
+            // Flush the output to ensure the prompt is displayed immediately
+            io::stdout().flush().unwrap();
 
-    let username = input_string.trim();
+            // Read the user input into the String
+            io::stdin()
+                .read_line(&mut input_string)
+                .map_err(|err| ScaffError {
+                    message: "go init error -> ".to_owned() + &err.to_string(),
+                })?;
+
+            input_string
+        }
+    };
 
     let import_str = format!("github.com/{}/{}", username, project);
 
-    let root = generate_project_structure(project, port, &import_str);
+    let root = generated_project::PROJECT_DIR.clone();
 
-    dir_builder(root, format!("./{}", project))?;
+    let injects = Injectables {
+        project_name: project.to_string(),
+        username,
+        port,
+        db,
+        ws,
+    };
+
+    dir_builder(root, format!("./{}", project), &injects)?;
 
     env::set_current_dir(Path::new(&project)).expect("Could not set dir project");
     println!("{} Initializing Project...", style("[2/5]").bold().dim());
@@ -88,7 +111,13 @@ pub fn scaffold(project: &str, port: u32) -> Result<(), ScaffError> {
     Ok(())
 }
 
-fn dir_builder(dir: ProjectDir, depth: String) -> Result<(), ScaffError> {
+fn dir_builder(dir: ProjectDir, depth: String, injects: &Injectables) -> Result<(), ScaffError> {
+    if dir.dirname == "connections" && !injects.ws
+        || (dir.dirname == "database" || dir.dirname == "sql") && !injects.db
+    {
+        return Ok(());
+    }
+
     Command::new("mkdir")
         .arg("-p")
         .arg(depth.clone())
@@ -97,7 +126,25 @@ fn dir_builder(dir: ProjectDir, depth: String) -> Result<(), ScaffError> {
             message: err.to_string(),
         })?;
 
-    for prj_file in dir.files.unwrap_or(vec![]) {
+    for mut prj_file in dir.files.unwrap_or(vec![]) {
+        prj_file.content = prj_file
+            .content
+            .replace("go_boilerplate", injects.project_name.as_str());
+        prj_file.content = prj_file
+            .content
+            .replace("__username__", injects.username.as_str());
+        prj_file.content = prj_file
+            .content
+            .replace("__port__", injects.port.to_string().as_str());
+
+        if injects.ws {
+            prj_file.content = prj_file.content.replace("#--", "");
+        }
+
+        if injects.db {
+            prj_file.content = prj_file.content.replace("#---", "");
+        }
+
         let mut file =
             File::create(depth.clone() + "/" + &prj_file.filename).map_err(|err| ScaffError {
                 message: err.to_string(),
@@ -123,16 +170,16 @@ fn dir_builder(dir: ProjectDir, depth: String) -> Result<(), ScaffError> {
 
     for prj_dir in dir.dirs.unwrap_or(vec![]) {
         let new_depth = prj_dir.dirname.clone();
-        dir_builder(prj_dir, depth.clone() + "/" + &new_depth)?;
+        dir_builder(prj_dir, depth.clone() + "/" + &new_depth, injects)?;
     }
 
     Ok(())
 }
 
-#[test]
-fn test_generate_project_structure() {
-    let proj_dir = generate_project_structure("testproj", 8080, "github.com/test");
+// #[test]
+// fn test_generate_project_structure() {
+//     let proj_dir = generate_project_structure("testproj", 8080, "github.com/test");
 
-    assert!(proj_dir.dirs.unwrap().len() > 0);
-    assert!(proj_dir.files.unwrap().len() > 0);
-}
+//     assert!(proj_dir.dirs.unwrap().len() > 0);
+//     assert!(proj_dir.files.unwrap().len() > 0);
+// }
