@@ -81,6 +81,7 @@ pub fn scaffold(
             "github.com/labstack/echo/v4/middleware",
             "github.com/a-h/templ",
             "github.com/joho/godotenv",
+            "github.com/google/uuid",
             "github.com/jmoiron/sqlx",
             "github.com/lib/pq",
         ])
