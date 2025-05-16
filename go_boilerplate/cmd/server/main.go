@@ -29,7 +29,10 @@ func main() {
 	e := createRouter(ctx)
 
 	go func() {
-		fmt.Printf("Running Server on port %s", port)
+		e.Logger.Infof("Running Server on port %s", port)
+		e.Logger.Infof("Accessible locally at: http://localhost:%s", port)
+		e.Logger.Infof("Accessible on the network at: http://%s:%s", boot.Environment.Host, port)
+		e.Logger.Infof("Press Ctrl+C to stop the server and exit.")
 		e.Logger.Fatal(e.Start(":" + port))
 	}()
 

@@ -6,6 +6,9 @@ import (
 	"net/http"
 	"strings"
 	"time"
+	"fmt"
+
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/__username__/go_boilerplate/cmd/boot"
 	"github.com/__username__/go_boilerplate/internal/api"
@@ -26,6 +29,14 @@ func createRouter(ctx context.Context) *echo.Echo {
 	e := echo.New()
 	e.Use(middleware.Logger())
 	e.Use(middleware.RemoveTrailingSlash())
+	// Apply Gzip middleware, but skip it for /metrics
+	e.Use(middleware.GzipWithConfig(middleware.GzipConfig{
+		Skipper: func(c echo.Context) bool {
+			return c.Path() == "/metrics" // Skip compression for /metrics
+		},
+	}))
+	e.Use(middlewares.MonitoringMiddleware())
+	e.GET("/metrics", echo.WrapHandler(promhttp.Handler()))
 	e.GET("/healthcheck", func(c echo.Context) error {
 		time.Sleep(5 * time.Second)
 		return c.JSON(http.StatusOK, "OK")
@@ -56,6 +67,8 @@ func createRouter(ctx context.Context) *echo.Echo {
 		CookieName:     "csrf_token",
 		CookiePath:     "/",
 		CookieHTTPOnly: true,
+		CookieSecure:   boot.Environment.GoEnv == "production",
+		CookieSameSite: http.SameSiteLaxMode,
 		Skipper: func(c echo.Context) bool {
 			// Skip CSRF for the /webhook route
 			return c.Path() == "/webhook"
@@ -80,7 +93,7 @@ func createRouter(ctx context.Context) *echo.Echo {
 func serverErrorHandler(err error, c echo.Context) {
 	// Default to internal server error (500)
 	code := http.StatusInternalServerError
-	var message interface{} = "An unexpected error occurred"
+	var message any = "An unexpected error occurred"
 
 	// Check if it's an echo.HTTPError
 	if he, ok := err.(*echo.HTTPError); ok {
@@ -91,7 +104,7 @@ func serverErrorHandler(err error, c echo.Context) {
 	// Check the Accept header to decide the response format
 	if strings.Contains(c.Request().Header.Get("Accept"), "application/json") {
 		// Respond with JSON if the client prefers JSON
-		_ = c.JSON(code, map[string]interface{}{
+		_ = c.JSON(code, map[string]any{
 			"error":   true,
 			"message": message,
 			"status":  code,
@@ -104,11 +117,9 @@ func serverErrorHandler(err error, c echo.Context) {
 		buf := bytes.NewBuffer(nil)
 
 		// Render based on the status code
-		if code >= 500 {
-			_ = views.ServerError(data, err).Render(context.Background(), buf)
-		} else {
-			_ = views.ClientError(data, err).Render(context.Background(), buf)
-		}
+
+		_ = views.Error(data, fmt.Sprintf("%d", code), err).Render(context.Background(), buf)
+
 		// Respond with HTML (default) if the client prefers HTML
 		_ = c.Blob(code, "text/html; charset=utf-8", buf.Bytes())
 	}
