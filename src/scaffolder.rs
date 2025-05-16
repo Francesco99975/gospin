@@ -1,4 +1,5 @@
 use std::{
+    collections::HashSet,
     env,
     fs::File,
     io::{self, Write},
@@ -16,6 +17,39 @@ use regex::Regex;
 
 mod generated_project {
     include!(concat!(env!("OUT_DIR"), "/generated_project.rs"));
+}
+
+fn extract_imports(input: &str, username: &str) -> Vec<String> {
+    let lines: Vec<&str> = input.split('\n').collect();
+    let mut imports = Vec::new();
+    let mut in_import = false;
+
+    for line in lines {
+        let trimmed = line.trim();
+        if trimmed.contains("import (") {
+            in_import = true;
+            continue;
+        }
+        if in_import {
+            if trimmed.contains(")") {
+                in_import = false;
+                continue;
+            }
+            if !trimmed.is_empty() && !trimmed.starts_with("//") {
+                if trimmed.starts_with('"') && trimmed.ends_with('"') {
+                    let import_path = &trimmed[1..trimmed.len() - 1];
+                    if import_path.contains(".")
+                        && !import_path.contains("__username__")
+                        && !import_path.contains(username)
+                    {
+                        imports.push(import_path.replace(" ", "").replace("\n", ""));
+                    }
+                }
+            }
+        }
+    }
+
+    imports
 }
 
 pub fn scaffold(
@@ -60,7 +94,7 @@ pub fn scaffold(
         ws,
     };
 
-    dir_builder(root, format!("./{}", project), &injects)?;
+    let imports_set = dir_builder(root, format!("./{}", project), &injects)?;
 
     env::set_current_dir(Path::new(&project)).expect("Could not set dir project");
     println!("{} Initializing Project...", style("[2/5]").bold().dim());
@@ -74,17 +108,10 @@ pub fn scaffold(
         })?;
 
     println!("{} Installing Go Packages...", style("[3/5]").bold().dim());
+
     Command::new("go")
         .arg("get")
-        .args(vec![
-            "github.com/labstack/echo/v4",
-            "github.com/labstack/echo/v4/middleware",
-            "github.com/a-h/templ",
-            "github.com/joho/godotenv",
-            "github.com/google/uuid",
-            "github.com/jmoiron/sqlx",
-            "github.com/lib/pq",
-        ])
+        .args(&imports_set)
         .output()
         .map_err(|err| ScaffError {
             message: "go init error -> ".to_owned() + &err.to_string(),
@@ -113,11 +140,15 @@ pub fn scaffold(
     Ok(())
 }
 
-fn dir_builder(dir: ProjectDir, depth: String, injects: &Injectables) -> Result<(), ScaffError> {
+fn dir_builder(
+    dir: ProjectDir,
+    depth: String,
+    injects: &Injectables,
+) -> Result<HashSet<String>, ScaffError> {
     if dir.dirname == "connections" && !injects.ws
         || (dir.dirname == "database" || dir.dirname == "sql") && !injects.db
     {
-        return Ok(());
+        return Ok(HashSet::new());
     }
 
     Command::new("mkdir")
@@ -127,6 +158,8 @@ fn dir_builder(dir: ProjectDir, depth: String, injects: &Injectables) -> Result<
         .map_err(|err| ScaffError {
             message: err.to_string(),
         })?;
+
+    let mut imports_set = HashSet::new();
 
     for mut prj_file in dir.files.unwrap_or(vec![]) {
         prj_file.content = prj_file
@@ -163,6 +196,10 @@ fn dir_builder(dir: ProjectDir, depth: String, injects: &Injectables) -> Result<
             .map_err(|err| ScaffError {
                 message: err.to_string(),
             })?;
+
+        let extracted_strings = extract_imports(&prj_file.content, injects.username.as_str());
+
+        imports_set.extend(extracted_strings);
     }
 
     if dir.dirname == "client" {
@@ -180,8 +217,12 @@ fn dir_builder(dir: ProjectDir, depth: String, injects: &Injectables) -> Result<
 
     for prj_dir in dir.dirs.unwrap_or(vec![]) {
         let new_depth = prj_dir.dirname.clone();
-        dir_builder(prj_dir, depth.clone() + "/" + &new_depth, injects)?;
+        imports_set.extend(dir_builder(
+            prj_dir,
+            depth.clone() + "/" + &new_depth,
+            injects,
+        )?);
     }
 
-    Ok(())
+    Ok(imports_set)
 }

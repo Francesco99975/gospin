@@ -4,7 +4,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Francesco99975/finexo/internal/monitoring"
+	"github.com/__username__/go_boilerplate/internal/monitoring"
 	"github.com/labstack/echo/v4"
 )
 

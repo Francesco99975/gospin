@@ -95,7 +95,7 @@ fn process_dir(dir_path: &str) -> Result<String, Box<dyn std::error::Error>> {
 
     Ok(format!(
         "ProjectDir {{ dirname: \"{}\".to_string(), files: {}, dirs: {} }}",
-        dir_path.split("/").last().unwrap(),
+        dir_path.split("/").last().unwrap().replace("_.", "."),
         files_str,
         dirs_str
     ))

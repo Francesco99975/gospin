@@ -5,6 +5,9 @@ import (
 	"os"
 	"sync"
 	"time"
+	"path/filepath"
+
+	"github.com/labstack/gommon/log"
 )
 
 // Structured Severity "enum"

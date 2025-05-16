@@ -3,8 +3,8 @@ package views
 import "github.com/__username__/go_boilerplate/internal/models"
 import "github.com/__username__/go_boilerplate/views/layouts"
 
-templ Index(site models.Site) {
-	@layouts.CoreHTML(site) {
+templ Index(site models.Site, csrf, nonce string) {
+	@layouts.CoreHTML(site, nonce, nil, nil, nil) {
 		<main class="flex flex-col w-full justify-center items-center min-h-[100vh]">
 			<h1 class="text-2xl text-primary font-bold my-2">Hello GO+HTMX</h1>
 		</main>
