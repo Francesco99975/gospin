@@ -1,4 +1,4 @@
-FROM golang:1.23.4-alpine3.19 AS build
+FROM golang:1.25.3-alpine3.21 AS build
 
 RUN apk --no-cache add gcc g++ make git
 
@@ -21,7 +21,8 @@ WORKDIR /go/bin
 COPY --from=build /go/src/app/bin /go/bin
 COPY --from=build /go/src/app/.env /go/bin/
 COPY --from=build /go/src/app/static /go/bin/static
+COPY --from=build /go/src/app/sql /go/bin/sql
 
 EXPOSE __port__
 
-ENTRYPOINT /go/bin/go_boilerplate --port __port__
+ENTRYPOINT ["/go/bin/go_boilerplate", "--port", "__port__"]

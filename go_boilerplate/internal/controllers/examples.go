@@ -9,14 +9,14 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func Index() echo.HandlerFunc {
+func Examples() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		data := models.GetDefaultSite("Home")
+		data := models.GetDefaultSite("Examples")
 
 		data.CSRF = c.Get("csrf").(string)
 		data.Nonce = c.Get("nonce").(string)
 
-		html := helpers.MustRenderHTML(views.Index(data))
+		html := helpers.MustRenderHTML(views.Examples(data))
 
 		return c.Blob(http.StatusOK, "text/html; charset=utf-8", html)
 	}

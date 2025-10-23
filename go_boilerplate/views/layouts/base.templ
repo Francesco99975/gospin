@@ -6,9 +6,11 @@ import (
 	"strconv"
 )
 
-templ Error(site models.Site) {
+// Base layout for unauthenticated pages
+templ Base(site models.Site) {
 	@CoreHTML(site) {
 		<div class="min-h-screen flex flex-col">
+			@components.Header()
 			{ children... }
 			@components.Footer(site.AppName, strconv.Itoa(site.Year))
 		</div>

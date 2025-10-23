@@ -46,6 +46,15 @@ var (
 		},
 		[]string{"event_type"},
 	)
+
+	// Example custom metric: Error counter
+	errorsTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "errors_total",
+			Help: "Total number of errors",
+		},
+		[]string{"error_code"},
+	)
 )
 
 func IncreaseHTTPRequestCount(method, path string, status int) {
@@ -65,6 +74,11 @@ func RecordDBQueryLatency(queryType string, start time.Time) {
 // RecordBusinessEvent is a helper to record a business event
 func RecordBusinessEvent(eventType string) {
 	businessEventsTotal.WithLabelValues(eventType).Inc()
+}
+
+// RecordError is a helper to record an error
+func RecordError(errorCode string) {
+	errorsTotal.WithLabelValues(errorCode).Inc()
 }
 
 // Example usage in a handler with custom metrics

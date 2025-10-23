@@ -1,147 +1,88 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-/* @font-face {
-  font-family: "JosefineSans";
-  src: url("../fonts/JosefinSansRegular-x3LYV.ttf");
-  font-display: swap;
-} */
+@source "../../src/**/*.{js,ts}";
+@source "../../../views/**/*.templ";
 
+@theme {
+  --color-std: oklch(96.5% 0.005 240.5);
+  --color-primary: oklch(54.8% 0.223 218.5);
+  --color-accent: oklch(74.5% 0.243 173.2);
+
+  --color-success: oklch(64.2% 0.249 156.8);
+  --color-error: oklch(59.8% 0.282 25.3);
+  --color-warning: oklch(70.1% 0.254 45.2);
+  --color-info: oklch(67.9% 0.202 215.4);
+}
+
+/* Base layer for global and dark mode setup */
 @layer base {
-  :root {
-    /* Base neutral color - softer than before */
-    --color-std: 240 240 245;
+  html {
+    scroll-behavior: smooth;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    transition: background-color 0.3s ease;
+    color-scheme: light; /* ensures system UI respects light mode */
+  }
 
-    /* Professional deep blue for primary elements */
-    --color-primary: 25 91 139;
-
-    /* Teal accent that complements the primary blue */
-    --color-accent: 56 178 172;
-
-    /* Clear green for positive returns/success */
-    --color-success: 34 154 94;
-
-    /* Refined red for errors/negative returns */
-    --color-error: 220 38 38;
-
-    /* Additional useful colors for financial context */
-    --color-warning: 245 158 11;
-    --color-info: 79 129 189;
-
-    /* Text colors */
-    --color-text-primary: 31 41 55;
-    --color-text-secondary: 107 114 128;
-
-    /* Background variations */
-    --color-bg-light: 249 250 251;
-    --color-bg-dark: 17 24 39;
+  html.dark {
+    color-scheme: dark; /* ensures system UI respects dark mode */
   }
 
   .dark {
-    --color-std: 30 41 59;
-    --color-primary: 56 139 196;
-    --color-accent: 79 209 197;
-    --color-success: 52 211 153;
-    --color-error: 248 113 113;
-    --color-text-primary: 243 244 246;
-    --color-text-secondary: 156 163 175;
-    --color-bg-light: 31 41 55;
-    --color-bg-dark: 17 24 39;
+    /* Dark theme overrides */
+    --color-std: oklch(32.1% 0.045 230.5);
+    --color-primary: oklch(74.2% 0.223 218.5);
+    --color-accent: oklch(84.3% 0.243 173.2);
+
+    --color-success: oklch(83.5% 0.249 156.8);
+    --color-error: oklch(78.2% 0.282 25.3);
+    --color-warning: oklch(80.5% 0.254 45.2);
+    --color-info: oklch(87.1% 0.202 215.4);
   }
-}
 
-@layer {
-  #logout {
-    @apply w-full !bg-red-500 p-2 tracking-widest !border-red-500 !border-2 shadow-md !font-bold;
+  [x-cloak] {
+    display: none !important;
   }
-}
 
-html {
-  scroll-behavior: smooth;
-  /* font-family: "JosefineSans", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; */
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  transition: background-color 0.3s ease;
-}
+  .htmx-indicator {
+    opacity: 0;
+    transition: opacity 200ms ease-in;
+  }
 
-html.dark {
-  color-scheme: dark;
-}
+  .htmx-request .htmx-indicator,
+  .htmx-request.htmx-indicator {
+    opacity: 1;
+  }
 
-[x-cloak] { display: none !important; }
-.htmx-indicator {
-  opacity: 0;
-  transition: opacity 200ms ease-in;
-}
-.htmx-request .htmx-indicator {
-  opacity: 1;
-}
-.htmx-request.htmx-indicator {
-  opacity: 1;
-}
-
-
- /* Animation for the error code */
+  /* Animations */
   @keyframes pulse {
-    0%, 100% {
-      opacity: 1;
-    }
-    50% {
-      opacity: 0.7;
-    }
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
   }
   .animate-pulse-slow {
     animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
 
-
-  /* Animation for the error code */
   @keyframes float {
-    0% {
-      transform: translateY(0px);
-    }
-    50% {
-      transform: translateY(-20px);
-    }
-    100% {
-      transform: translateY(0px);
-    }
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+    100% { transform: translateY(0px); }
   }
-
   .animate-float {
     animation: float 6s ease-in-out infinite;
   }
 
-  /* Gradient animation */
   @keyframes gradient {
-    0% {
-      background-position: 0% 50%;
-    }
-    50% {
-      background-position: 100% 50%;
-    }
-    100% {
-      background-position: 0% 50%;
-    }
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
   }
-
   .animate-gradient {
     background-size: 200% 200%;
     animation: gradient 15s ease infinite;
   }
 
-
-   /* Custom styles for math formulas */
-  .formula-container {
-    overflow-x: auto;
-    padding: 1rem;
-    margin: 1rem 0;
-    background-color: rgba(var(--color-std), 0.5);
-    border-radius: 0.5rem;
-  }
-
-  /* Table of contents highlight */
   .toc-link.active {
     color: rgb(var(--color-primary));
     font-weight: 600;
   }
+}

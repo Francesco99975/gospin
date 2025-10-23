@@ -1,0 +1,111 @@
+package views
+
+import "github.com/__username__/go_boilerplate/internal/models"
+import "github.com/__username__/go_boilerplate/views/layouts"
+import "github.com/__username__/go_boilerplate/views/icons"
+import "github.com/__username__/go_boilerplate/views/components"
+
+templ Examples(site models.Site) {
+	@layouts.Base(site) {
+		<main class="flex-1 w-full">
+			<div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16 max-w-7xl">
+				<h1 class="text-4xl font-bold mb-8 text-center">HTMX Loading States Demo</h1>
+				<p class="text-std/70 text-center mb-12 max-w-2xl mx-auto">
+					Explore three different loading state patterns using HTMX's hx-indicator feature.
+					Each demonstrates a different approach to showing loading feedback.
+				</p>
+				<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+					<!-- Button Loading -->
+					<div class="bg-primary/50 backdrop-blur-md border border-primary/30 dark:border-primary/50 rounded-2xl p-8 shadow-xl transition-all duration-300 hover:shadow-2xl">
+						<div class="flex flex-col gap-6">
+							<div class="text-center">
+								<h2 class="text-2xl font-bold text-accent mb-2">Button Loading</h2>
+								<p class="text-sm text-std/60">Button shows inline spinner</p>
+							</div>
+							<form hx-post="/api/v1/cats" hx-indicator="#button-indicator" hx-disabled-elt="find input[type='text'], find button" class="space-y-4">
+								@components.CSRF(site.CSRF)
+								<input
+									type="text"
+									name="data"
+									placeholder="Enter some data..."
+									class="w-full bg-std/5 border border-primary/30 dark:border-primary/50 rounded-lg px-4 py-2 text-std focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all"
+								/>
+								<div class="relative">
+									<button
+										type="submit"
+										class="w-full bg-accent text-white py-3 px-4 rounded-lg hover:bg-accent/90 focus:outline-none focus:ring-2 focus:ring-accent/50 focus:ring-offset-2 focus:ring-offset-primary transition-all duration-200 hover:scale-[1.02] active:scale-95 font-medium shadow-lg cursor-pointer disabled:cursor-not-allowed disabled:opacity-75"
+									>
+										Submit
+									</button>
+									<div id="button-indicator" class="htmx-indicator absolute inset-0  flex items-center justify-center bg-accent/95 rounded-lg pointer-events-none">
+										@icons.Loading("w-6 h-6 animate-spin text-white")
+									</div>
+								</div>
+							</form>
+						</div>
+					</div>
+					<!-- Form Loading -->
+					<div class="bg-primary/50 backdrop-blur-md border border-primary/30 dark:border-primary/50 rounded-2xl p-8 shadow-xl transition-all duration-300 hover:shadow-2xl">
+						<div class="flex flex-col gap-6">
+							<div class="text-center">
+								<h2 class="text-2xl font-bold text-accent mb-2">Form Loading</h2>
+								<p class="text-sm text-std/60">Entire form shows overlay</p>
+							</div>
+							<form hx-post="/api/v1/cats" hx-indicator="#form-indicator" hx-indicator="#button-indicator" hx-disabled-elt="find input[type='text'], find button" class="relative space-y-4">
+								@components.CSRF(site.CSRF)
+								<input
+									type="text"
+									name="data"
+									placeholder="Enter some data..."
+									class="w-full bg-std/5 border border-primary/30 dark:border-primary/50 rounded-lg px-4 py-2 text-std focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all"
+								/>
+								<button
+									type="submit"
+									class="w-full bg-accent text-white py-3 px-4 rounded-lg hover:bg-accent/90 focus:outline-none focus:ring-2 focus:ring-accent/50 focus:ring-offset-2 focus:ring-offset-primary transition-all duration-200 hover:scale-[1.02] active:scale-95 font-medium shadow-lg cursor-pointer disabled:cursor-not-allowed disabled:opacity-75"
+								>
+									Submit
+								</button>
+								<div id="form-indicator" class="htmx-indicator absolute inset-0 flex flex-col items-center justify-center bg-primary/95 backdrop-blur-sm rounded-lg pointer-events-none">
+									@icons.Loading("w-10 h-10 animate-spin text-accent mb-2")
+									<p class="text-sm text-std/70 font-medium">Processing form...</p>
+								</div>
+							</form>
+						</div>
+					</div>
+					<!-- Page Loading -->
+					<div class="bg-primary/50 backdrop-blur-md border border-primary/30 dark:border-primary/50 rounded-2xl p-8 shadow-xl transition-all duration-300 hover:shadow-2xl">
+						<div class="flex flex-col gap-6">
+							<div class="text-center">
+								<h2 class="text-2xl font-bold text-accent mb-2">Page Loading</h2>
+								<p class="text-sm text-std/60">Full page overlay appears</p>
+							</div>
+							<form hx-post="/api/v1/cats" hx-indicator="#page-indicator" hx-disabled-elt="find input[type='text'], find button" class="space-y-4">
+								@components.CSRF(site.CSRF)
+								<input
+									type="text"
+									name="data"
+									placeholder="Enter some data..."
+									class="w-full bg-std/5 border border-primary/30 dark:border-primary/50 rounded-lg px-4 py-2 text-std focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all"
+								/>
+								<button
+									type="submit"
+									class="w-full bg-accent text-white py-3 px-4 rounded-lg hover:bg-accent/90 focus:outline-none focus:ring-2 focus:ring-accent/50 focus:ring-offset-2 focus:ring-offset-primary transition-all duration-200 hover:scale-[1.02] active:scale-95 font-medium shadow-lg cursor-pointer disabled:cursor-not-allowed disabled:opacity-75"
+								>
+									Submit
+								</button>
+							</form>
+						</div>
+					</div>
+				</div>
+				<!-- Page Loading Indicator (Global) -->
+				<div id="page-indicator" class="htmx-indicator fixed inset-0 z-50 flex flex-col items-center justify-center bg-std/90 backdrop-blur-md">
+					<div class="bg-primary/80 backdrop-blur-sm border border-primary/30 dark:border-primary/50 rounded-2xl p-12 shadow-2xl pointer-events-none">
+						@icons.Loading("w-16 h-16 animate-spin text-accent mb-4")
+						<p class="text-xl text-std font-semibold">Loading page...</p>
+						<p class="text-sm text-std/60 mt-2">Please wait</p>
+					</div>
+				</div>
+			</div>
+		</main>
+	}
+}

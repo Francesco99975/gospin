@@ -1,44 +1,39 @@
 package components
 
 import "github.com/__username__/go_boilerplate/internal/models"
+import "github.com/__username__/go_boilerplate/cmd/boot"
 
-templ SEO(site models.Site, nonce string, stylesheets []string, scripts []string) {
+templ SEO(site models.Site) {
 	<head hx-swap="outerHTML">
 		<title>{ site.AppName } | { site.Title }</title>
-		<link rel="icon" href="/assets/images/favicon.ico" type="image/x-icon"/>
+		<!-- PWA Manifest -->
+		<link rel="manifest" href="/assets/dist/manifest.webmanifest"/>
+		<!-- Apple Touch Icon (for iOS reliability) -->
+		<link rel="apple-touch-icon" href="/assets/dist/apple-touch-icon-180x180.png"/>
+		<!-- Theme Color -->
+		<meta name="theme-color" content="#ffffff"/>
+		<link rel="icon" href="/assets/dist/icon-optimized.svg" type="image/svg+xml"/>
+		<link rel="icon" href="/assets/dist/favicon-32x32.png" type="image/png" sizes="32x32"/>
+		<link rel="icon" href="/assets/dist/favicon.ico" type="image/x-icon" sizes="64x64"/>
 		<meta charset="utf-8"/>
 		<meta name="viewport" content="width=device-width, initial-scale=1"/>
 		<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
 		<meta name="description" content={ site.Metatags.Description }/>
 		<meta name="keywords" content={ site.Metatags.Keywords }/>
-		<meta name="author" content="{ site.Author }"/>
+		<meta name="author" content={ site.Metatags.Author }/>
 		<meta name="robots" content="index, follow"/>
 		<link rel="robots" href="/assets/robots.txt"/>
-		<link rel="canonical" href="{ site.Url }"/>
-		@Stylesheet("/assets/dist/about.css")
+		<link rel="canonical" href={ boot.Environment.URL }/>
 		// <link rel="sitemap" type="application/xml" title="Sitemap" href="/assets/sitemap.xml"/>
-		<script type="application/ld+json" nonce={ nonce }>
-                {
-                    "@context": "http://schema.org",
-                    "@type": "Organization",
-                    "name": "Finexo",
-                    "url": "{ site.Url }",
-                    "logo": "{ site.Url }/assets/images/logo.webp",
-                    "contactPoint": [
-                        {
-                            "@type": "ContactPoint",
-                            "telephone": "+1",
-                            "contactType": "Kal"
-                        }
-                    ]
-                }
-                </script>
-		@Script("/assets/dist/index.js", nonce)
-		for _, script := range scripts {
-			@Script(script, nonce)
+		<script type="application/ld+json" nonce={ site.Nonce }>
+			{{ site.Organization }}
+        </script>
+		@Script("/assets/dist/index.js", site.Nonce)
+		for _, script := range site.SeoScripts {
+			@Script(script, site.Nonce)
 		}
 		@Stylesheet("/assets/dist/index.css")
-		for _, style := range stylesheets {
+		for _, style := range site.Styles {
 			@Stylesheet(style)
 		}
 	</head>

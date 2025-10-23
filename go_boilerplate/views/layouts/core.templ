@@ -2,23 +2,16 @@ package layouts
 
 import "github.com/__username__/go_boilerplate/internal/models"
 import "github.com/__username__/go_boilerplate/views/components"
-import "strconv"
 
-
-templ CoreHTML(site models.Site, nonce string, stylesheets []string, seoScripts []string, pageScripts []string) {
+templ CoreHTML(site models.Site) {
 	<!DOCTYPE html>
 	<html lang="en">
-		@components.SEO(site, nonce, stylesheets, seoScripts)
-		<body class="bg-bg-std min-h-screen transition-colors">
-			// <div id="indicator" class="htmx-indicator w-full h-screen absolute bottom-0 right-0 z-50 flex bg-slate-700 opacity-70 justify-center items-center"><div class="loader"></div></div>
-			<div class="min-h-screen flex flex-col">
-				@components.Header()
-				{ children... }
-				@components.Footer(strconv.Itoa(site.Year))
-			</div>
+		@components.SEO(site)
+		<body class="bg-std antialiased min-h-screen transition-colors">
+			{ children... }
 		</body>
-		for _, script := range pageScripts {
-			@components.Script(script, nonce)
+		for _, script := range site.PageScripts {
+			@components.Script(script, site.Nonce)
 		}
 	</html>
 }

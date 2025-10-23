@@ -1,6 +1,8 @@
 package components
 
-templ ErrorMsg(err string) {
+import "github.com/__username__/go_boilerplate/internal/enums"
+
+templ ErrorMsg(err string, mode enums.Box, persistance string) {
 	<!-- Error message component -->
 	<div
 		x-data="{ show: true }"
@@ -11,9 +13,11 @@ templ ErrorMsg(err string) {
 		x-transition:leave="transition ease-in duration-200"
 		x-transition:leave-start="opacity-100 transform scale-100"
 		x-transition:leave-end="opacity-0 transform scale-95"
-		class="bg-red-50 border-l-4 border-red-500 p-4 rounded shadow-md"
+		class="bg-red-50 border-l-4 border-red-500 p-4 rounded shadow-md error-message"
 		role="alert"
 	>
+		<input type="hidden" name="mode" value={ mode }/>
+		<input type="hidden" name="persistence" value={ persistance }/>
 		<div class="flex items-start">
 			<div class="flex-shrink-0">
 				<!-- Error icon -->

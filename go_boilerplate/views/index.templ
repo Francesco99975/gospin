@@ -3,10 +3,60 @@ package views
 import "github.com/__username__/go_boilerplate/internal/models"
 import "github.com/__username__/go_boilerplate/views/layouts"
 
-templ Index(site models.Site, csrf, nonce string) {
-	@layouts.CoreHTML(site, nonce, nil, nil, nil) {
-		<main class="flex flex-col w-full justify-center items-center min-h-[100vh]">
-			<h1 class="text-2xl text-primary font-bold my-2">Hello GO+HTMX</h1>
+templ Index(site models.Site) {
+	@layouts.Base(site) {
+		<main class="flex-1 w-full">
+			<div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16 max-w-7xl">
+				<h1 class="text-4xl font-bold main">Welcome to { site.AppName }</h1>
+				<div class="flex items-center justify-center min-h-[400px]">
+					<div
+						x-data="{ count: 0 }"
+						class="bg-primary/50 backdrop-blur-md border border-primary/30 dark:border-primary/50 rounded-2xl p-8 sm:p-12 shadow-xl transition-all duration-300 hover:shadow-2xl"
+					>
+						<div class="flex flex-col items-center gap-8">
+							<!-- Counter Display -->
+							<div class="text-center">
+								<p class="text-sm font-medium text-std/60 uppercase tracking-wider mb-2">Counter</p>
+								<div
+									class="text-7xl sm:text-8xl font-bold text-accent tabular-nums transition-all duration-300"
+									x-text="count"
+								>
+									0
+								</div>
+							</div>
+							<!-- Button Controls -->
+							<div class="flex items-center gap-4">
+								<!-- Decrement Button -->
+								<button
+									@click="count--"
+									class="group relative bg-primary hover:bg-accent/10 border-2 border-accent/30 hover:border-accent text-accent rounded-xl px-6 py-4 font-bold text-2xl transition-all duration-200 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-primary shadow-lg hover:shadow-xl"
+									aria-label="Decrease count"
+								>
+									<span class="relative z-10">−</span>
+									<div class="absolute inset-0 bg-accent/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
+								</button>
+								<!-- Reset Button -->
+								<button
+									@click="count = 0"
+									class="bg-primary hover:bg-std/5 border border-primary/30 dark:border-primary/50 hover:border-std/30 text-std/60 hover:text-std rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-std/30 focus:ring-offset-2 focus:ring-offset-primary"
+									aria-label="Reset count"
+								>
+									Reset
+								</button>
+								<!-- Increment Button -->
+								<button
+									@click="count++"
+									class="group relative bg-accent hover:bg-accent/90 text-white rounded-xl px-6 py-4 font-bold text-2xl transition-all duration-200 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-primary shadow-lg hover:shadow-xl"
+									aria-label="Increase count"
+								>
+									<span class="relative z-10">+</span>
+									<div class="absolute inset-0 bg-white/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
+								</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
 		</main>
 	}
 }

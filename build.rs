@@ -3,6 +3,9 @@ use std::io::Write;
 use std::path::Path;
 
 fn main() {
+    // Tell Cargo to rerun if go_boilerplate changes
+    println!("cargo:rerun-if-changed=go_boilerplate");
+
     // Process the directory to generate the structure
     let dir_structure = match process_dir("go_boilerplate") {
         Ok(structure) => structure,
@@ -54,6 +57,8 @@ fn main() {
 // Recursively processes directories and files to create a string that can be compiled into the binary.
 fn process_dir(dir_path: &str) -> Result<String, Box<dyn std::error::Error>> {
     let entries = fs::read_dir(dir_path)?;
+    // Get the project root directory
+    let project_root = std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR not set");
 
     let mut files = Vec::new();
     let mut dirs = Vec::new();
@@ -63,18 +68,28 @@ fn process_dir(dir_path: &str) -> Result<String, Box<dyn std::error::Error>> {
         let path = entry.path();
 
         if path.is_file() {
-            let mut filename = path.file_name().unwrap().to_str().unwrap();
-            let content = fs::read_to_string(&path)?;
-
+            let filename = path.file_name().unwrap().to_str().unwrap();
+            let mut display_filename = filename;
             if filename.starts_with("_.") {
                 let mut chars = filename.chars();
                 chars.next();
-                filename = chars.as_str();
+                display_filename = chars.as_str();
             }
 
+            // Compute absolute path and check existence
+            let absolute_path = Path::new(&project_root).join(&path);
+            if !absolute_path.exists() {
+                println!(
+                    "cargo:warning=Skipping missing file: {}",
+                    absolute_path.display()
+                );
+                continue;
+            }
+
+            // Use include_str! in the generated code
             files.push(format!(
-                "ProjectFile {{ filename: \"{}\".to_string(), content: r#\"{}\"#.to_string() }}",
-                filename, content
+                "ProjectFile {{ filename: \"{}\".to_string(), content: include_str!(\"{}\").to_string() }}",
+                display_filename, absolute_path.to_str().unwrap().replace("\\", "/")
             ));
         } else if path.is_dir() {
             dirs.push(process_dir(path.to_str().unwrap())?);

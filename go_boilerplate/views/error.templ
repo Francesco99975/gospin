@@ -5,7 +5,7 @@ import (
 	"github.com/__username__/go_boilerplate/views/layouts"
 )
 
-templ Error(site models.Site, code string, err error) {
+templ Error(site models.Site, code string, message string) {
 	@layouts.Error(site) {
 		<!-- Main Content -->
 		<main class="flex-grow container mx-auto px-4 py-8 flex items-center justify-center">
@@ -30,12 +30,8 @@ templ Error(site models.Site, code string, err error) {
 							</div>
 							<div class="text-center md:text-left">
 								<h1 class="text-5xl md:text-6xl font-bold text-error">{ code }</h1>
-								<h2 class="text-xl md:text-2xl font-semibold text-text-primary mt-2">"An Error Occurred"</h2>
+								<h2 class="text-xl md:text-2xl font-semibold text-text-primary mt-2">{ message }</h2>
 							</div>
-						</div>
-						<!-- Error Message -->
-						<div class="text-center mb-10">
-							<p class="text-lg text-text-secondary">{ err.Error() }</p>
 						</div>
 						<!-- Home Button -->
 						<div class="flex justify-center">

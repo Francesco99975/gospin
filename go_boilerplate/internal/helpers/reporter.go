@@ -10,7 +10,6 @@ import (
 	"github.com/labstack/gommon/log"
 )
 
-// Structured Severity "enum"
 type Severity struct {
 	PANIC SeverityType
 	ERROR SeverityType
@@ -76,14 +75,14 @@ func (r *Reporter) Close() error {
 	return r.file.Close()
 }
 
-func Cleanup(frequency time.Duration) {
+func (r *Reporter) Cleanup(frequency time.Duration) {
 	// Remove old report files in the report directory
-	syncFiles, err := os.ReadDir("reports/sync")
+	files, err := os.ReadDir(r.filePath)
 	if err != nil {
 		log.Errorf("Failed to read report directory: %v", err)
 		return
 	}
-	for _, file := range syncFiles {
+	for _, file := range files {
 		if file.IsDir() {
 			continue
 		}
@@ -94,34 +93,12 @@ func Cleanup(frequency time.Duration) {
 			continue
 		}
 		if time.Since(fileInfo.ModTime()) > frequency {
-			err := os.Remove(filepath.Join("reports/sync", file.Name()))
-			if err != nil {
-				log.Errorf("Failed to remove old report file: %v", err)
-			}
-		}
-	}
-
-	discoveryFiles, err := os.ReadDir("reports/discovery")
-	if err != nil {
-		log.Errorf("Failed to read report directory: %v", err)
-		return
-	}
-	for _, file := range discoveryFiles {
-		if file.IsDir() {
-			continue
-		}
-
-		fileInfo, err := file.Info()
-		if err != nil {
-			log.Errorf("Failed to get file info: %v", err)
-			continue
-		}
-		if time.Since(fileInfo.ModTime()) > frequency {
-			err := os.Remove(filepath.Join("reports/discovery", file.Name()))
+			err := os.Remove(filepath.Join(r.filePath, file.Name()))
 			if err != nil {
 				log.Errorf("Failed to remove old report file: %v", err)
 			}
 		}
 	}
 }
+
 

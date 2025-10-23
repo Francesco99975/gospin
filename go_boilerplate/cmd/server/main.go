@@ -8,6 +8,7 @@ import (
 
 	"github.com/__username__/go_boilerplate/cmd/boot"
 	//=="github.com/__username__/go_boilerplate/internal/database"
+	"github.com/__username__/go_boilerplate/internal/helpers"
 )
 
 func main() {
@@ -30,7 +31,7 @@ func main() {
 	go func() {
 		e.Logger.Infof("Running Server on port %s", port)
 		e.Logger.Infof("Accessible locally at: http://localhost:%s", port)
-		e.Logger.Infof("Accessible on the network at: http://%s:%s", boot.Environment.Host, port)
+		e.Logger.Infof("Accessible on the internet at: %s", boot.Environment.URL)
 		e.Logger.Infof("Press Ctrl+C to stop the server and exit.")
 		e.Logger.Fatal(e.Start(":" + port))
 	}()
@@ -38,9 +39,11 @@ func main() {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt)
 	<-quit
+	helpers.Notify("go_boilerplate", "Server is shutting down")
 	ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	if err := e.Shutdown(ctx); err != nil {
+		helpers.Notify("go_boilerplate", fmt.Sprintf("Server forced to shutdown: %v", err))
 		e.Logger.Fatal(err)
 	}
 }

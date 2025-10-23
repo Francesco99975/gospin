@@ -12,6 +12,8 @@ import (
 
 	"github.com/__username__/go_boilerplate/cmd/boot"
 	"github.com/__username__/go_boilerplate/internal/api"
+	"github.com/__username__/go_boilerplate/internal/enums"
+	"github.com/__username__/go_boilerplate/internal/helpers"
 
 	//--"github.com/__username__/go_boilerplate/internal/connections"
 
@@ -36,7 +38,7 @@ func createRouter(ctx context.Context) *echo.Echo {
 		},
 	}))
 	e.Use(middlewares.MonitoringMiddleware())
-	e.GET("/metrics", echo.WrapHandler(promhttp.Handler()))
+	e.GET("/metrics", echo.WrapHandler(promhttp.Handler()), middlewares.MetricsAccessMiddleware())
 	e.GET("/healthcheck", func(c echo.Context) error {
 		time.Sleep(5 * time.Second)
 		return c.JSON(http.StatusOK, "OK")
@@ -67,7 +69,7 @@ func createRouter(ctx context.Context) *echo.Echo {
 		CookieName:     "csrf_token",
 		CookiePath:     "/",
 		CookieHTTPOnly: true,
-		CookieSecure:   boot.Environment.GoEnv == "production",
+		CookieSecure:   boot.Environment.GoEnv == enums.Environments.PRODUCTION,
 		CookieSameSite: http.SameSiteLaxMode,
 		Skipper: func(c echo.Context) bool {
 			// Skip CSRF for the /webhook route
@@ -80,10 +82,13 @@ func createRouter(ctx context.Context) *echo.Echo {
 
 	web.GET("/", controllers.Index())
 
+	web.GET("/examples", controllers.Examples())
+
 	apigrp := e.Group("/api")
 
 	apiv1 := apigrp.Group("/v1")
-	apiv1.GET("/", api.PlaceholderGet())
+	apiv1.POST("/cats", api.PlaceholderGet())
+
 
 	e.HTTPErrorHandler = serverErrorHandler
 
@@ -93,7 +98,7 @@ func createRouter(ctx context.Context) *echo.Echo {
 func serverErrorHandler(err error, c echo.Context) {
 	// Default to internal server error (500)
 	code := http.StatusInternalServerError
-	var message any = "An unexpected error occurred"
+	var message any = "Internal Server Error"
 
 	// Check if it's an echo.HTTPError
 	if he, ok := err.(*echo.HTTPError); ok {
@@ -110,17 +115,15 @@ func serverErrorHandler(err error, c echo.Context) {
 			"status":  code,
 		})
 	} else {
+		if code == 404 {
+			message = "Page Not Found"
+		}
 		// Prepare data for rendering the error page (HTML)
 		data := models.GetDefaultSite("Error")
 
-		// Buffer to hold the HTML content (in case of HTML response)
-		buf := bytes.NewBuffer(nil)
-
-		// Render based on the status code
-
-		_ = views.Error(data, fmt.Sprintf("%d", code), err).Render(context.Background(), buf)
+		html := helpers.MustRenderHTML(views.Error(data, fmt.Sprintf("%d", code), message.(string)))
 
 		// Respond with HTML (default) if the client prefers HTML
-		_ = c.Blob(code, "text/html; charset=utf-8", buf.Bytes())
+		_ = c.Blob(code, "text/html; charset=utf-8", html)
 	}
 }
