@@ -10,7 +10,7 @@ func MapSlice[T any, U any](slice []T, f func(T) U) []U {
 	return result
 }
 
-func FoldSlice[T any, U any, R any](slice []T, f func(T, R) R, initial R) R {
+func FoldSlice[T any, R any](slice []T, f func(T, R) R, initial R) R {
 	result := initial
 	for _, v := range slice {
 		result = f(v, result)
@@ -35,4 +35,3 @@ func SortSlice[T any](arr []T, less func(a, b T) bool) {
 		return less(arr[i], arr[j])
 	})
 }
-

@@ -11,7 +11,8 @@ templ CoreHTML(site models.Site) {
 			{ children... }
 		</body>
 		for _, script := range site.PageScripts {
-			@components.Script(script, site.Nonce)
+			@components.Script(script, site.Nonce, "")
 		}
 	</html>
 }
+

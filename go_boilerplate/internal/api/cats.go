@@ -9,9 +9,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func PlaceholderGet() echo.HandlerFunc {
+func GetCats() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		cats, err := models.PlaceholderGet()
+		cats, err := models.GetCats()
 		if err != nil {
 			return helpers.SendReturnedGenericJSONError(c, helpers.GenericError{Code: http.StatusNotFound, Message: fmt.Sprintf("Error fetching categories <-- %v", err.Error()), UserMessage: "No categories where found at this time...", Errors: []string{err.Error()}}, nil)
 		}
@@ -19,3 +19,4 @@ func PlaceholderGet() echo.HandlerFunc {
 		return c.JSON(http.StatusOK, cats)
 	}
 }
+

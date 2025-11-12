@@ -2,18 +2,26 @@ package enums
 
 import "strings"
 
+type environment string
+
+const (
+	development environment = "development"
+	staging     environment = "staging"
+	production  environment = "production"
+)
+
+type Environment environment
+
 type EnvironmentDef struct {
 	DEVELOPMENT Environment
 	STAGING     Environment
 	PRODUCTION  Environment
 }
 
-type Environment string
-
 var Environments = &EnvironmentDef{
-	DEVELOPMENT: Environment("development"),
-	STAGING:     Environment("staging"),
-	PRODUCTION:  Environment("production"),
+	DEVELOPMENT: Environment(development),
+	STAGING:     Environment(staging),
+	PRODUCTION:  Environment(production),
 }
 
 func (r Environment) String() string {

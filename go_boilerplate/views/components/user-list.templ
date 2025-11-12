@@ -1,0 +1,85 @@
+package components
+
+import (
+	"github.com/__username__/go_boilerplate/internal/repository"
+	"strconv"
+)
+
+templ UsersList(users []repository.GetAllUsersRow, csrf string) {
+	<div id="users-container" class="space-y-6 mt-8">
+		<!-- Add User Form -->
+		<div class="bg-std/5 border border-accent/30 rounded-lg p-4">
+			<h3 class="text-lg font-semibold mb-4 text-accent">Add New User</h3>
+			<form
+				hx-post="/examples/users"
+				hx-target="#user-list"
+				hx-swap="afterbegin"
+				hx-on::after-request="this.reset()"
+				class="flex flex-col sm:flex-row gap-3"
+			>
+				@CSRF(csrf)
+				<input
+					type="text"
+					name="username"
+					placeholder="Username"
+					required
+					class="flex-1 bg-std/5 border border-primary/30 dark:border-primary/50 rounded-lg px-4 py-2 text-std focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all"
+				/>
+				<input
+					type="email"
+					name="email"
+					placeholder="email@example.com"
+					required
+					class="flex-1 bg-std/5 border border-primary/30 dark:border-primary/50 rounded-lg px-4 py-2 text-std focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all"
+				/>
+				<button
+					type="submit"
+					class="bg-accent text-white px-6 py-2 rounded-lg hover:bg-accent/90 focus:outline-none focus:ring-2 focus:ring-accent/50 transition-all duration-200 hover:scale-105 active:scale-95 font-medium cursor-pointer disabled:cursor-not-allowed disabled:opacity-75"
+				>
+					Add User
+				</button>
+			</form>
+		</div>
+		<!-- Users List -->
+		<div>
+			@UserCountPartial(strconv.Itoa(len(users)), false)
+			<div id="user-list" class="space-y-3">
+				@EmptyUserMessage(len(users) == 0, false)
+				for _, user := range users {
+					@UserItem(user.ID, user.Username, user.Email, csrf)
+				}
+			</div>
+		</div>
+	</div>
+}
+
+templ UserCountPartial(count string, oob bool) {
+	<h3
+		id="user-count"
+		class="text-lg font-semibold mb-4"
+		if oob {
+			hx-swap-oob="this"
+		}
+	>Users ({ count })</h3>
+}
+
+templ EmptyUserMessage(show bool, oob bool) {
+	// Empty message with OOB swap attribute
+	if show {
+		<p
+			id="empty-message"
+			if oob {
+				hx-swap-oob="outerHTML"
+			}
+			class="text-std/60 text-center py-8"
+		>No users found. Add some users to get started!</p>
+	} else {
+		<p
+			id="empty-message"
+			class="hidden"
+			if oob {
+				hx-swap-oob="outerHTML"
+			}
+		></p>
+	}
+}

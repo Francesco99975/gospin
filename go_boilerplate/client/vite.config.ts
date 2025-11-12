@@ -3,6 +3,7 @@ import tailwindcss from "@tailwindcss/vite";
 import fg from "fast-glob";
 import { resolve } from "path";
 import { defineConfig } from "vite";
+import manifestSRI from 'vite-plugin-manifest-sri';
 import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig({
@@ -12,6 +13,7 @@ export default defineConfig({
   },
   build: {
     outDir: "../static/dist",
+    manifest: true,
     minify: "esbuild",
     target: "es2022",
     sourcemap: false,
@@ -22,8 +24,8 @@ export default defineConfig({
         .sync(["src/*.ts", "src/js/**/*.ts"])
         .map((file) => resolve(__dirname, file)),
       output: {
-        entryFileNames: "[name].js",
-        assetFileNames: "[name].[ext]",
+        entryFileNames: "[name]-[hash].js",
+        assetFileNames: "[name]-[hash].[ext]",
       },
     },
   },
@@ -36,6 +38,8 @@ export default defineConfig({
       // 📄 No auto-injection (no HTML entry); we'll manual register
       injectRegister: null,
       // 🖼️ Web App Manifest (install prompt, etc.)
+      outDir: '../static',
+      filename: 'sw.js',
       manifest: {
         name: "GoApp", // Customize
         short_name: "Goapp",
@@ -66,7 +70,11 @@ export default defineConfig({
       // 📁 Output files
       workbox: {
         globPatterns: ["**/*.{js,css,html,png,ico,svg}"], // ✅ Cache icons
+        navigateFallback: null,
       },
+    }),
+    manifestSRI({
+      algorithms: ['sha384'],  // Recommended: Stronger than sha256, browser-supported
     }),
   ],
   esbuild: {

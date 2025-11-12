@@ -14,7 +14,7 @@ type Cat struct {
 	Age  int    `json:"age"`
 }
 
-func PlaceholderGet() ([]Cat, error) {
+func GetCats() ([]Cat, error) {
 	// Simulate Waiting time
 	time.Sleep(5 * time.Second)
 

@@ -9,94 +9,221 @@ templ Examples(site models.Site) {
 	@layouts.Base(site) {
 		<main class="flex-1 w-full">
 			<div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16 max-w-7xl">
-				<h1 class="text-4xl font-bold mb-8 text-center">HTMX Loading States Demo</h1>
-				<p class="text-std/70 text-center mb-12 max-w-2xl mx-auto">
-					Explore three different loading state patterns using HTMX's hx-indicator feature.
-					Each demonstrates a different approach to showing loading feedback.
-				</p>
-				<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-					<!-- Button Loading -->
-					<div class="bg-primary/50 backdrop-blur-md border border-primary/30 dark:border-primary/50 rounded-2xl p-8 shadow-xl transition-all duration-300 hover:shadow-2xl">
-						<div class="flex flex-col gap-6">
-							<div class="text-center">
-								<h2 class="text-2xl font-bold text-accent mb-2">Button Loading</h2>
-								<p class="text-sm text-std/60">Button shows inline spinner</p>
+				<h1 class="text-4xl font-bold mb-8 text-center">HTMX Examples</h1>
+				<!-- Loading States Section -->
+				<section class="mb-16">
+					<h2 class="text-3xl font-bold mb-4 text-center">Loading States Demo</h2>
+					<p class="text-primary/70 text-center mb-12 max-w-2xl mx-auto">
+						Explore three different loading state patterns using HTMX's hx-indicator feature.
+						Each demonstrates a different approach to showing loading feedback.
+					</p>
+					<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+						<!-- Button Loading -->
+						<div class="bg-primary/50 backdrop-blur-md border border-primary/30 dark:border-primary/50 rounded-2xl p-8 shadow-xl transition-all duration-300 hover:shadow-2xl">
+							<div class="flex flex-col gap-6">
+								<div class="text-center">
+									<h2 class="text-2xl font-bold text-accent mb-2">Button Loading</h2>
+									<p class="text-sm text-std/60">Button shows inline spinner</p>
+								</div>
+								<form hx-post="/api/v1/cats" hx-indicator="#button-indicator" hx-disabled-elt="find input[type='text'], find button" class="space-y-4">
+									@components.CSRF(site.CSRF)
+									<input
+										type="text"
+										name="data"
+										placeholder="Enter some data..."
+										class="w-full bg-std/5 border border-primary/30 dark:border-primary/50 rounded-lg px-4 py-2 text-std focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all"
+									/>
+									<div class="relative">
+										<button
+											type="submit"
+											class="w-full bg-accent text-white py-3 px-4 rounded-lg hover:bg-accent/90 focus:outline-none focus:ring-2 focus:ring-accent/50 focus:ring-offset-2 focus:ring-offset-primary transition-all duration-200 hover:scale-[1.02] active:scale-95 font-medium shadow-lg cursor-pointer disabled:cursor-not-allowed disabled:opacity-75"
+										>
+											Submit
+										</button>
+										<div id="button-indicator" class="htmx-indicator absolute inset-0  flex items-center justify-center bg-accent/95 rounded-lg pointer-events-none">
+											@icons.Loading("w-6 h-6 animate-spin text-white")
+										</div>
+									</div>
+								</form>
 							</div>
-							<form hx-post="/api/v1/cats" hx-indicator="#button-indicator" hx-disabled-elt="find input[type='text'], find button" class="space-y-4">
-								@components.CSRF(site.CSRF)
-								<input
-									type="text"
-									name="data"
-									placeholder="Enter some data..."
-									class="w-full bg-std/5 border border-primary/30 dark:border-primary/50 rounded-lg px-4 py-2 text-std focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all"
-								/>
-								<div class="relative">
+						</div>
+						<!-- Form Loading -->
+						<div class="bg-primary/50 backdrop-blur-md border border-primary/30 dark:border-primary/50 rounded-2xl p-8 shadow-xl transition-all duration-300 hover:shadow-2xl">
+							<div class="flex flex-col gap-6">
+								<div class="text-center">
+									<h2 class="text-2xl font-bold text-accent mb-2">Form Loading</h2>
+									<p class="text-sm text-std/60">Entire form shows overlay</p>
+								</div>
+								<form hx-post="/api/v1/cats" hx-indicator="#form-indicator" hx-indicator="#button-indicator" hx-disabled-elt="find input[type='text'], find button" class="relative space-y-4">
+									@components.CSRF(site.CSRF)
+									<input
+										type="text"
+										name="data"
+										placeholder="Enter some data..."
+										class="w-full bg-std/5 border border-primary/30 dark:border-primary/50 rounded-lg px-4 py-2 text-std focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all"
+									/>
 									<button
 										type="submit"
 										class="w-full bg-accent text-white py-3 px-4 rounded-lg hover:bg-accent/90 focus:outline-none focus:ring-2 focus:ring-accent/50 focus:ring-offset-2 focus:ring-offset-primary transition-all duration-200 hover:scale-[1.02] active:scale-95 font-medium shadow-lg cursor-pointer disabled:cursor-not-allowed disabled:opacity-75"
 									>
 										Submit
 									</button>
-									<div id="button-indicator" class="htmx-indicator absolute inset-0  flex items-center justify-center bg-accent/95 rounded-lg pointer-events-none">
+									<div id="form-indicator" class="htmx-indicator absolute inset-0 flex flex-col items-center justify-center bg-primary/95 backdrop-blur-sm rounded-lg pointer-events-none">
+										@icons.Loading("w-10 h-10 animate-spin text-accent mb-2")
+										<p class="text-sm text-std/70 font-medium">Processing form...</p>
+									</div>
+								</form>
+							</div>
+						</div>
+						<!-- Page Loading -->
+						<div class="bg-primary/50 backdrop-blur-md border border-primary/30 dark:border-primary/50 rounded-2xl p-8 shadow-xl transition-all duration-300 hover:shadow-2xl">
+							<div class="flex flex-col gap-6">
+								<div class="text-center">
+									<h2 class="text-2xl font-bold text-accent mb-2">Page Loading</h2>
+									<p class="text-sm text-std/60">Full page overlay appears</p>
+								</div>
+								<form hx-post="/api/v1/cats" hx-indicator="#page-indicator" hx-disabled-elt="find input[type='text'], find button" class="space-y-4">
+									@components.CSRF(site.CSRF)
+									<input
+										type="text"
+										name="data"
+										placeholder="Enter some data..."
+										class="w-full bg-std/5 border border-primary/30 dark:border-primary/50 rounded-lg px-4 py-2 text-std focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all"
+									/>
+									<button
+										type="submit"
+										class="w-full bg-accent text-white py-3 px-4 rounded-lg hover:bg-accent/90 focus:outline-none focus:ring-2 focus:ring-accent/50 focus:ring-offset-2 focus:ring-offset-primary transition-all duration-200 hover:scale-[1.02] active:scale-95 font-medium shadow-lg cursor-pointer disabled:cursor-not-allowed disabled:opacity-75"
+									>
+										Submit
+									</button>
+								</form>
+							</div>
+						</div>
+					</div>
+				</section>
+				//==<!-- CRUD Example Section -->
+				<section class="mb-16">
+					<h2 class="text-3xl font-bold mb-4 text-center">CRUD Operations Demo</h2>
+					<p class="text-primary/70 text-center mb-12 max-w-2xl mx-auto">
+						Demonstrates Create, Read, Update, and Delete operations with HTMX.
+						Fetch users, add new ones, edit email domains, and remove users.
+					</p>
+					<div class="bg-primary/50 backdrop-blur-md border border-primary/30 dark:border-primary/50 rounded-2xl p-8 shadow-xl max-w-4xl mx-auto">
+						<!-- Fetch Users Button (Initial State) -->
+						<div id="fetch-container" class="text-center">
+							<button
+								hx-get="/examples/users"
+								hx-target="#users-container"
+								hx-swap="outerHTML"
+								hx-indicator="#fetch-indicator"
+								class="bg-accent text-white py-3 px-8 rounded-lg hover:bg-accent/90 focus:outline-none focus:ring-2 focus:ring-accent/50 focus:ring-offset-2 focus:ring-offset-primary transition-all duration-200 hover:scale-105 active:scale-95 font-medium shadow-lg cursor-pointer disabled:cursor-not-allowed disabled:opacity-75"
+							>
+								Fetch Users
+							</button>
+							<div id="fetch-indicator" class="htmx-indicator mt-4">
+								@icons.Loading("w-8 h-8 animate-spin text-accent mx-auto")
+							</div>
+						</div>
+						<!-- Users Container (Initially Empty) -->
+						<div id="users-container" class="hidden">
+							<!-- Users will be loaded here -->
+						</div>
+					</div>
+				</section>==//
+				<!-- Server Error States Section -->
+				<section class="mb-16">
+					<h2 class="text-3xl font-bold mb-4 text-center">Server Error States  Demo</h2>
+					<p class="text-primary/70 text-center mb-12 max-w-2xl mx-auto">
+						Explore different server errors handling patterns using HTMX's event listener (htmx:responseError).
+						Each demonstrates a different approach to handling server errors.
+					</p>
+					<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+						<!-- Under Form Error -->
+						<div class="bg-primary/50 backdrop-blur-md border border-primary/30 dark:border-primary/50 rounded-2xl p-8 shadow-xl transition-all duration-300 hover:shadow-2xl">
+							<div class="flex flex-col gap-6">
+								<div class="text-center">
+									<h2 class="text-2xl font-bold text-accent mb-2">Under Form Error</h2>
+									<p class="text-sm text-std/60">Error will appear under form</p>
+								</div>
+								<form hx-post="/errors/below" hx-indicator="#below-indicator" hx-disabled-elt="find input[type='text'], find button" class="space-y-4">
+									@components.CSRF(site.CSRF)
+									<input
+										type="text"
+										name="data"
+										placeholder="Enter some data..."
+										class="w-full bg-std/5 border border-primary/30 dark:border-primary/50 rounded-lg px-4 py-2 text-std focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all"
+									/>
+									<div class="relative">
+										<button
+											type="submit"
+											class="w-full bg-accent text-white py-3 px-4 rounded-lg hover:bg-accent/90 focus:outline-none focus:ring-2 focus:ring-accent/50 focus:ring-offset-2 focus:ring-offset-primary transition-all duration-200 hover:scale-[1.02] active:scale-95 font-medium shadow-lg cursor-pointer disabled:cursor-not-allowed disabled:opacity-75"
+										>
+											Submit
+										</button>
+										<div id="below-indicator" class="htmx-indicator absolute inset-0  flex items-center justify-center bg-accent/95 rounded-lg pointer-events-none">
+											@icons.Loading("w-6 h-6 animate-spin text-white")
+										</div>
+									</div>
+								</form>
+							</div>
+						</div>
+						<!-- replace form with error -->
+						<div class="bg-primary/50 backdrop-blur-md border border-primary/30 dark:border-primary/50 rounded-2xl p-8 shadow-xl transition-all duration-300 hover:shadow-2xl">
+							<div class="flex flex-col gap-6">
+								<div class="text-center">
+									<h2 class="text-2xl font-bold text-accent mb-2">Replace Error Handling</h2>
+									<p class="text-sm text-std/60">Form is replaced with error</p>
+								</div>
+								<form hx-post="/errors/replace" hx-indicator="#replacef-indicator" hx-indicator="#replace-indicator" hx-disabled-elt="find input[type='text'], find button" class="relative space-y-4">
+									@components.CSRF(site.CSRF)
+									<input
+										type="text"
+										name="data"
+										placeholder="Enter some data..."
+										class="w-full bg-std/5 border border-primary/30 dark:border-primary/50 rounded-lg px-4 py-2 text-std focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all"
+									/>
+									<button
+										type="submit"
+										class="w-full bg-accent text-white py-3 px-4 rounded-lg hover:bg-accent/90 focus:outline-none focus:ring-2 focus:ring-accent/50 focus:ring-offset-2 focus:ring-offset-primary transition-all duration-200 hover:scale-[1.02] active:scale-95 font-medium shadow-lg cursor-pointer disabled:cursor-not-allowed disabled:opacity-75"
+									>
+										Submit
+									</button>
+									<div id="replacef-indicator" class="htmx-indicator absolute inset-0 flex flex-col items-center justify-center bg-primary/95 backdrop-blur-sm rounded-lg pointer-events-none">
+										@icons.Loading("w-10 h-10 animate-spin text-accent mb-2")
+										<p class="text-sm text-std/70 font-medium">Processing form...</p>
+									</div>
+								</form>
+							</div>
+						</div>
+						<!-- Toast Error Handling -->
+						<div class="bg-primary/50 backdrop-blur-md border border-primary/30 dark:border-primary/50 rounded-2xl p-8 shadow-xl transition-all duration-300 hover:shadow-2xl">
+							<div class="flex flex-col gap-6">
+								<div class="text-center">
+									<h2 class="text-2xl font-bold text-accent mb-2">Toast Error Handling</h2>
+									<p class="text-sm text-std/60">Toast appears in one of the corners to handler error</p>
+								</div>
+								<form hx-post="/errors/toast" hx-indicator="#toast-indicator" hx-disabled-elt="find input[type='text'], find button" class="space-y-4">
+									@components.CSRF(site.CSRF)
+									<input
+										type="text"
+										name="data"
+										placeholder="Enter some data..."
+										class="w-full bg-std/5 border border-primary/30 dark:border-primary/50 rounded-lg px-4 py-2 text-std focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all"
+									/>
+									<button
+										type="submit"
+										class="w-full bg-accent text-white py-3 px-4 rounded-lg hover:bg-accent/90 focus:outline-none focus:ring-2 focus:ring-accent/50 focus:ring-offset-2 focus:ring-offset-primary transition-all duration-200 hover:scale-[1.02] active:scale-95 font-medium shadow-lg cursor-pointer disabled:cursor-not-allowed disabled:opacity-75"
+									>
+										Submit
+									</button>
+									<div id="toast-indicator" class="htmx-indicator absolute inset-0  flex items-center justify-center bg-accent/95 rounded-lg pointer-events-none">
 										@icons.Loading("w-6 h-6 animate-spin text-white")
 									</div>
-								</div>
-							</form>
-						</div>
-					</div>
-					<!-- Form Loading -->
-					<div class="bg-primary/50 backdrop-blur-md border border-primary/30 dark:border-primary/50 rounded-2xl p-8 shadow-xl transition-all duration-300 hover:shadow-2xl">
-						<div class="flex flex-col gap-6">
-							<div class="text-center">
-								<h2 class="text-2xl font-bold text-accent mb-2">Form Loading</h2>
-								<p class="text-sm text-std/60">Entire form shows overlay</p>
+								</form>
 							</div>
-							<form hx-post="/api/v1/cats" hx-indicator="#form-indicator" hx-indicator="#button-indicator" hx-disabled-elt="find input[type='text'], find button" class="relative space-y-4">
-								@components.CSRF(site.CSRF)
-								<input
-									type="text"
-									name="data"
-									placeholder="Enter some data..."
-									class="w-full bg-std/5 border border-primary/30 dark:border-primary/50 rounded-lg px-4 py-2 text-std focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all"
-								/>
-								<button
-									type="submit"
-									class="w-full bg-accent text-white py-3 px-4 rounded-lg hover:bg-accent/90 focus:outline-none focus:ring-2 focus:ring-accent/50 focus:ring-offset-2 focus:ring-offset-primary transition-all duration-200 hover:scale-[1.02] active:scale-95 font-medium shadow-lg cursor-pointer disabled:cursor-not-allowed disabled:opacity-75"
-								>
-									Submit
-								</button>
-								<div id="form-indicator" class="htmx-indicator absolute inset-0 flex flex-col items-center justify-center bg-primary/95 backdrop-blur-sm rounded-lg pointer-events-none">
-									@icons.Loading("w-10 h-10 animate-spin text-accent mb-2")
-									<p class="text-sm text-std/70 font-medium">Processing form...</p>
-								</div>
-							</form>
 						</div>
 					</div>
-					<!-- Page Loading -->
-					<div class="bg-primary/50 backdrop-blur-md border border-primary/30 dark:border-primary/50 rounded-2xl p-8 shadow-xl transition-all duration-300 hover:shadow-2xl">
-						<div class="flex flex-col gap-6">
-							<div class="text-center">
-								<h2 class="text-2xl font-bold text-accent mb-2">Page Loading</h2>
-								<p class="text-sm text-std/60">Full page overlay appears</p>
-							</div>
-							<form hx-post="/api/v1/cats" hx-indicator="#page-indicator" hx-disabled-elt="find input[type='text'], find button" class="space-y-4">
-								@components.CSRF(site.CSRF)
-								<input
-									type="text"
-									name="data"
-									placeholder="Enter some data..."
-									class="w-full bg-std/5 border border-primary/30 dark:border-primary/50 rounded-lg px-4 py-2 text-std focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all"
-								/>
-								<button
-									type="submit"
-									class="w-full bg-accent text-white py-3 px-4 rounded-lg hover:bg-accent/90 focus:outline-none focus:ring-2 focus:ring-accent/50 focus:ring-offset-2 focus:ring-offset-primary transition-all duration-200 hover:scale-[1.02] active:scale-95 font-medium shadow-lg cursor-pointer disabled:cursor-not-allowed disabled:opacity-75"
-								>
-									Submit
-								</button>
-							</form>
-						</div>
-					</div>
-				</div>
+				</section>
 				<!-- Page Loading Indicator (Global) -->
 				<div id="page-indicator" class="htmx-indicator fixed inset-0 z-50 flex flex-col items-center justify-center bg-std/90 backdrop-blur-md">
 					<div class="bg-primary/80 backdrop-blur-sm border border-primary/30 dark:border-primary/50 rounded-2xl p-12 shadow-2xl pointer-events-none">

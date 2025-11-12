@@ -8,6 +8,7 @@ use std::{
 };
 
 use crate::{
+    cli::run_command,
     errors::ScaffError,
     models::{Injectables, ProjectDir},
 };
@@ -96,46 +97,73 @@ pub fn scaffold(
 
     let imports_set = dir_builder(root, format!("./{}", project), &injects)?;
 
-    env::set_current_dir(Path::new(&project)).expect("Could not set dir project");
+    env::set_current_dir(Path::new(&project).join("client")).expect("Could not set dir client");
+
+    run_command("npm", &["run", "generate-assets"]).map_err(|err| ScaffError {
+        message: "npm assets error -> ".to_owned() + &err.to_string(),
+    })?;
+
+    run_command("npm", &["run", "build"]).map_err(|err| ScaffError {
+        message: "npm build error -> ".to_owned() + &err.to_string(),
+    })?;
+
+    env::set_current_dir("..").expect("Could not set dir project");
     println!("{} Initializing Project...", style("[2/5]").bold().dim());
-    Command::new("go")
-        .arg("mod")
-        .arg("init")
-        .arg(import_str.clone())
-        .output()
-        .map_err(|err| ScaffError {
-            message: "go init error -> ".to_owned() + &err.to_string(),
-        })?;
+
+    run_command("go", &["mod", "init", &import_str]).map_err(|err| ScaffError {
+        message: "go init error -> ".to_owned() + &err.to_string(),
+    })?;
 
     println!("{} Installing Go Packages...", style("[3/5]").bold().dim());
 
-    Command::new("go")
-        .arg("get")
-        .args(&imports_set)
-        .output()
-        .map_err(|err| ScaffError {
-            message: "go init error -> ".to_owned() + &err.to_string(),
-        })?;
+    let mut args = vec!["get"];
+    args.extend(imports_set.iter().map(|s| s.as_str()));
+
+    run_command("go", &args).map_err(|err| ScaffError {
+        message: "go get error -> ".to_owned() + &err.to_string(),
+    })?;
+
+    if db {
+        //Development External Comand line tools
+        let go_tools = vec![
+            "github.com/golang-migrate/migrate/v4/cmd/migrate@latest".to_string(),
+            "github.com/sqlc-dev/sqlc/cmd/sqlc@latest".to_string(),
+            "-tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest".to_string(),
+        ];
+
+        for tool in go_tools {
+            Command::new("go")
+                .arg("install")
+                .arg(tool)
+                .output()
+                .map_err(|err| ScaffError {
+                    message: "go install error <-- ".to_owned() + &err.to_string(),
+                })?;
+        }
+    }
 
     println!(
         "{} Compiling Boilerplate Templ...",
         style("[4/5]").bold().dim()
     );
-    Command::new("templ")
-        .arg("generate")
-        .output()
-        .map_err(|err| ScaffError {
-            message: "templ error -> ".to_owned() + &err.to_string(),
-        })?;
+
+    run_command("templ", &["generate"]).map_err(|err| ScaffError {
+        message: "templ error -> ".to_owned() + &err.to_string(),
+    })?;
 
     println!("{} Tidying Up...", style("[5/5]").bold().dim());
-    Command::new("go")
-        .arg("mod")
-        .arg("tidy")
-        .output()
-        .map_err(|err| ScaffError {
-            message: "go init error -> ".to_owned() + &err.to_string(),
-        })?;
+
+    run_command("go", &["mod", "tidy"]).map_err(|err| ScaffError {
+        message: "tidy error -> ".to_owned() + &err.to_string(),
+    })?;
+
+    run_command("make", &["lint"]).map_err(|err| ScaffError {
+        message: "linting error -> ".to_owned() + &err.to_string(),
+    })?;
+
+    run_command("make", &["vet"]).map_err(|err| ScaffError {
+        message: "vetting error -> ".to_owned() + &err.to_string(),
+    })?;
 
     Ok(())
 }
@@ -146,7 +174,8 @@ fn dir_builder(
     injects: &Injectables,
 ) -> Result<HashSet<String>, ScaffError> {
     if dir.dirname == "connections" && !injects.ws
-        || (dir.dirname == "database" || dir.dirname == "sql") && !injects.db
+        || (dir.dirname == "database" || dir.dirname == "sql" || dir.dirname == "repository")
+            && !injects.db
     {
         return Ok(HashSet::new());
     }
@@ -162,6 +191,14 @@ fn dir_builder(
     let mut imports_set = HashSet::new();
 
     for mut prj_file in dir.files.unwrap_or(vec![]) {
+        if (prj_file.filename == "sqlc.yml".to_string()
+            || prj_file.filename == "user-item.templ".to_string()
+            || prj_file.filename == "user-list.templ".to_string())
+            && !injects.db
+        {
+            continue;
+        }
+
         prj_file.content = prj_file
             .content
             .replace("go_boilerplate", injects.project_name.as_str());
@@ -182,8 +219,13 @@ fn dir_builder(
 
         if injects.db {
             prj_file.content = prj_file.content.replace("//==", "");
+            prj_file.content = prj_file.content.replace("==//", "");
             prj_file.content = prj_file.content.replace("#==", "");
+            prj_file.content = prj_file.content.replace("==#", "");
         } else {
+            let re2 = Regex::new(r"(?s)(//=|#==).*?(==//|==#)").unwrap();
+            prj_file.content = re2.replace_all(&prj_file.content, "").to_string();
+
             let re = Regex::new(r"(//|#)==[^\n]*\n").unwrap();
             prj_file.content = re.replace_all(&prj_file.content, "").to_string();
         }
@@ -205,12 +247,9 @@ fn dir_builder(
     if dir.dirname == "client" {
         env::set_current_dir(Path::new(&depth)).expect("Could not set dir");
         println!("{} Running npm install...", style("[1/5]").bold().dim());
-        Command::new("npm")
-            .arg("install")
-            .output()
-            .map_err(|err| ScaffError {
-                message: "npm error -> ".to_owned() + &err.to_string(),
-            })?;
+        run_command("npm", &["install"]).map_err(|err| ScaffError {
+            message: "npm install error -> ".to_owned() + &err.to_string(),
+        })?;
 
         env::set_current_dir(Path::new("../..")).expect("Could not set dir root");
     }

@@ -1,9 +1,9 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"net/http"
+	"path/filepath"
 	"strings"
 	"time"
 	"fmt"
@@ -31,8 +31,10 @@ func createRouter(ctx context.Context) *echo.Echo {
 	e := echo.New()
 	e.Use(middleware.Logger())
 	e.Use(middleware.RemoveTrailingSlash())
+	e.Use(middlewares.RateLimiter())
 	// Apply Gzip middleware, but skip it for /metrics
 	e.Use(middleware.GzipWithConfig(middleware.GzipConfig{
+		Level: 5,
 		Skipper: func(c echo.Context) bool {
 			return c.Path() == "/metrics" // Skip compression for /metrics
 		},
@@ -43,8 +45,22 @@ func createRouter(ctx context.Context) *echo.Echo {
 		time.Sleep(5 * time.Second)
 		return c.JSON(http.StatusOK, "OK")
 	})
+	e.POST("/csp-violation-report", func(c echo.Context) error {
+		log.Warnf("CSP Violation Report: %s", c.Request().RequestURI)
+		return c.NoContent(http.StatusOK)
+	})
+
+	e.GET("/sw.js", func(c echo.Context) error {
+		c.Response().Header().Set("Content-Type", "application/javascript")
+		c.Response().Header().Set("Cache-Control", "no-cache")
+		return c.File("./static/sw.js")
+	})
 
 	e.Static("/assets", "./static")
+	e.GET("/assets/dist/*", func(c echo.Context) error {
+		c.Response().Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+		return c.File(filepath.Join("./static/dist", c.Param("*")))
+	})
 
 	//--wsManager := connections.NewManager(ctx)
 
@@ -52,16 +68,18 @@ func createRouter(ctx context.Context) *echo.Echo {
 
 	web := e.Group("")
 
-	if boot.Environment.GoEnv == "development" {
+	web.Use(middlewares.SecurityHeaders())
+
+	if boot.Environment.GoEnv == enums.Environments.DEVELOPMENT {
 		e.Logger.SetLevel(log.DEBUG)
 		log.SetLevel(log.DEBUG)
-		web.Use(middlewares.SecurityHeadersDev())
+
 	}
 
-	if boot.Environment.GoEnv == "production" {
+	if boot.Environment.GoEnv == enums.Environments.PRODUCTION {
 		e.Logger.SetLevel(log.INFO)
 		log.SetLevel(log.INFO)
-		web.Use(middlewares.SecurityHeaders())
+
 	}
 
 	web.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
@@ -83,11 +101,20 @@ func createRouter(ctx context.Context) *echo.Echo {
 	web.GET("/", controllers.Index())
 
 	web.GET("/examples", controllers.Examples())
+	//==web.GET("/examples/users", controllers.FetchAllUsers())
+
+	//==web.POST("/examples/users", controllers.AddNewUser())
+	//==web.PATCH("/examples/users/:id", controllers.ToggeleUserEmail())
+	//==web.DELETE("/examples/users/:id", controllers.DeleteUser())
+
+	web.POST("/errors/below", controllers.BelowFormError())
+	web.POST("/errors/replace", controllers.ReplaceFormError())
+	web.POST("/errors/toast", controllers.ToastFormError())
 
 	apigrp := e.Group("/api")
 
 	apiv1 := apigrp.Group("/v1")
-	apiv1.POST("/cats", api.PlaceholderGet())
+	apiv1.POST("/cats", api.GetCats())
 
 
 	e.HTTPErrorHandler = serverErrorHandler

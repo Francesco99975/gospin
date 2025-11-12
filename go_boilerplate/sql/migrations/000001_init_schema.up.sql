@@ -29,14 +29,13 @@ END;
 $$ LANGUAGE plpgsql;
 
 
--- CREATE TABLE IF NOT EXISTS users(
---   id TEXT NOT NULL UNIQUE,
---   username VARCHAR(15) NOT NULL UNIQUE,
---   email VARCHAR(30) NOT NULL UNIQUE,
---   password TEXT NOT NULL,
---   created TIMESTAMP NOT NULL DEFAULT NOW(),
---   updated TIMESTAMP NOT NULL DEFAULT NOW(),
---   PRIMARY KEY(id)
--- );
+CREATE TABLE IF NOT EXISTS users(
+  id UUID NOT NULL UNIQUE,
+  username VARCHAR(15) NOT NULL UNIQUE,
+  email VARCHAR(30) NOT NULL UNIQUE,
+  created TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated TIMESTAMP NOT NULL DEFAULT NOW(),
+  PRIMARY KEY(id)
+);
 
--- SELECT apply_update_trigger('users');
+SELECT apply_update_trigger('users');

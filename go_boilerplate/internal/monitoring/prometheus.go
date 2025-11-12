@@ -2,6 +2,7 @@ package monitoring
 
 import (
 	"fmt"
+	"sync/atomic"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -76,7 +77,36 @@ func RecordBusinessEvent(eventType string) {
 	businessEventsTotal.WithLabelValues(eventType).Inc()
 }
 
-// RecordError is a helper to record an error
+var (
+	errorCount int64 // production counter
+)
+
+// Only for tests — safe to reset
+var testErrorCount int64
+
+// IncErrorCount increments the error counter
+func IncErrorCount() {
+	atomic.AddInt64(&errorCount, 1)
+}
+
+// GetErrorCount returns current count
+func GetErrorCount() int64 {
+	return atomic.LoadInt64(&errorCount)
+}
+
+// === TEST-ONLY FUNCTIONS ===
+func IncErrorCountForTesting() {
+	atomic.AddInt64(&testErrorCount, 1)
+}
+
+func GetErrorCountForTesting() int64 {
+	return atomic.LoadInt64(&testErrorCount)
+}
+
+func ResetErrorCountForTesting() {
+	atomic.StoreInt64(&testErrorCount, 0)
+}
+
 func RecordError(errorCode string) {
 	errorsTotal.WithLabelValues(errorCode).Inc()
 }

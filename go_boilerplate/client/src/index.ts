@@ -117,8 +117,12 @@ document.body.addEventListener('htmx:responseError', function(event: any) {
 // 📡 Register Service Worker for PWA
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/assets/dist/sw.js', { scope: '/' })
-      .then(reg => console.log('✅ SW registered:', reg))
-      .catch(err => console.error('❌ SW registration failed:', err));
+    navigator.serviceWorker.register('/sw.js')
+      .then(reg => {
+        console.log('✅ SW registered:', reg.scope); // Should be https://yoursite.com/
+      })
+      .catch(err => {
+        console.error('❌ SW registration failed:', err);
+      });
   });
 }

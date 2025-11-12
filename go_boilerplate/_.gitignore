@@ -6,7 +6,7 @@ vendor
 .gomon
 .vscode
 *.log
-static/dist/*
+static/**/*
 build/postgres
 data
 *.pdf
@@ -22,3 +22,7 @@ views/**/*.txt
 reports/*
 age-key*
 *.tar.gz
+*templ.go
+benchmarks
+public
+*reports

@@ -3,9 +3,11 @@ package helpers
 import (
 	"fmt"
 
+	"github.com/__username__/go_boilerplate/internal/enums"
 	"github.com/__username__/go_boilerplate/internal/models"
 	"github.com/__username__/go_boilerplate/internal/monitoring"
 	"github.com/__username__/go_boilerplate/views"
+	"github.com/__username__/go_boilerplate/views/components"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
 )
@@ -15,6 +17,12 @@ type GenericError struct {
 	Message     string   `json:"message"`
 	UserMessage string   `json:"userMessage"`
 	Errors      []string `json:"errors"`
+}
+
+type ErrorMessage struct {
+	Error       GenericError `json:"error"`
+	Box         enums.Box    `json:"box"`
+	Persistance string       `json:"persistence"`
 }
 
 func (ge *GenericError) Stringify() string {
@@ -43,4 +51,17 @@ func SendReturnedGenericHTMLError(c echo.Context, err GenericError, r *Reporter)
 	html := MustRenderHTML(views.Error(models.GetDefaultSite("Error"), fmt.Sprintf("%d", err.Code), err.UserMessage))
 
 	return c.Blob(err.Code, "text/html", html)
+}
+
+func SendReturnedHTMLErrorMessage(c echo.Context, err ErrorMessage, r *Reporter) error {
+	monitoring.RecordError(fmt.Sprintf("%d", err.Error.Code))
+	log.Errorf(err.Error.Stringify())
+
+	if r != nil {
+		_ = r.Report(SeverityLevels.ERROR, err.Error.Stringify())
+	}
+
+	html := MustRenderHTML(components.ErrorMsg(err.Error.UserMessage, err.Box, err.Persistance))
+
+	return c.Blob(err.Error.Code, "text/html", html)
 }

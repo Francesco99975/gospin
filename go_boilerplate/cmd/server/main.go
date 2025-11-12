@@ -4,17 +4,24 @@ import (
 	"context"
 	"os"
 	"os/signal"
+	"log"
 	"time"
+	"fmt"
 
 	"github.com/__username__/go_boilerplate/cmd/boot"
 	//=="github.com/__username__/go_boilerplate/internal/database"
 	"github.com/__username__/go_boilerplate/internal/helpers"
+	"github.com/__username__/go_boilerplate/internal/models"
 )
 
 func main() {
 	err := boot.LoadEnvVariables()
 	if err != nil {
 		panic(err)
+	}
+
+	if err := models.LoadManifest("./static"); err != nil {
+		log.Fatalf("Failed to load Vite manifest: %v", err)
 	}
 
 	// Create a root ctx and a CancelFunc which can be used to cancel retentionMap goroutine
@@ -25,6 +32,7 @@ func main() {
 	port := boot.Environment.Port
 
 	//==database.Setup(boot.Environment.DSN)
+	//==defer database.Close()
 
 	e := createRouter(ctx)
 

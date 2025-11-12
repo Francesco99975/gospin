@@ -3,13 +3,14 @@ package helpers
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"sync"
 	"time"
-	"path/filepath"
 
 	"github.com/labstack/gommon/log"
 )
 
+// Structured Severity "enum"
 type Severity struct {
 	PANIC SeverityType
 	ERROR SeverityType
@@ -34,6 +35,7 @@ type Reporter struct {
 	lock     sync.Mutex
 	filePath string
 	file     *os.File
+	closed   bool
 }
 
 func NewReporter(filePath string) (*Reporter, error) {
@@ -56,22 +58,29 @@ func NewReporter(filePath string) (*Reporter, error) {
 
 // Report writes a log entry to the file
 func (r *Reporter) Report(level SeverityType, message string) error {
-	r.lock.Lock()
-	defer r.lock.Unlock()
-
+	// PRE-COMPUTE BEFORE LOCK
 	timestamp := time.Now().Format("2006-01-02 15:04:05")
 	entry := fmt.Sprintf("%s [%s] %s\n", timestamp, level, message)
 
-	_, err := r.file.WriteString(entry)
-	if err != nil {
-		return err
-	}
+	r.lock.Lock()
+	defer r.lock.Unlock()
 
-	return nil
+	if r.closed {
+		return fmt.Errorf("reporter is closed")
+	}
+	_, err := r.file.WriteString(entry)
+	return err
 }
 
 // Close the report file
 func (r *Reporter) Close() error {
+	r.lock.Lock()
+	defer r.lock.Unlock()
+
+	if r.closed {
+		return nil
+	}
+	r.closed = true
 	return r.file.Close()
 }
 
@@ -100,5 +109,3 @@ func (r *Reporter) Cleanup(frequency time.Duration) {
 		}
 	}
 }
-
-

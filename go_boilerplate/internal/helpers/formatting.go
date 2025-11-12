@@ -1,10 +1,11 @@
 package helpers
 
 import (
-	"unicode"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
+	"unicode"
 
 	"golang.org/x/text/currency"
 	"golang.org/x/text/language"
@@ -12,7 +13,14 @@ import (
 )
 
 func Capitalize(s string) string {
-	return string(unicode.ToUpper(rune(s[0]))) + s[1:]
+	if len(s) == 0 {
+		return s
+	}
+
+	// Convert string to []rune to handle multi-byte UTF-8 characters correctly
+	runes := []rune(s)
+	first := unicode.ToUpper(runes[0])
+	return string(first) + string(runes[1:])
 }
 
 func FormatPrice(price float64, curr string) (string, error) {
@@ -25,8 +33,13 @@ func FormatPrice(price float64, curr string) (string, error) {
 }
 
 func ParseNumberString(input string) (int64, error) {
+	if len(input) == 0 {
+		return 0, errors.New("empty string")
+	}
+
 	multipliers := map[string]float64{
 		"K": 1_000,
+		"k": 1_000,
 		"M": 1_000_000,
 		"B": 1_000_000_000,
 		"T": 1_000_000_000_000,
@@ -55,16 +68,47 @@ func ParseNumberString(input string) (int64, error) {
 func NormalizeFloatStrToIntStr(number string) string {
 	number = strings.ReplaceAll(number, ",", "")
 	number = strings.ReplaceAll(number, " ", "")
-	if !strings.Contains(number, ".") {
-		number = strings.ReplaceAll(number, "%", "00")
-	} else {
-		number = strings.ReplaceAll(number, "%", "")
-		number = strings.ReplaceAll(number, ".", "")
-	}
 	number = strings.ReplaceAll(number, "$", "")
-
 	number = strings.ReplaceAll(number, "(", "")
 	number = strings.ReplaceAll(number, ")", "")
+
+	isPercent := strings.HasSuffix(number, "%")
+	if isPercent {
+		number = strings.TrimSuffix(number, "%")
+	}
+
+	if strings.Contains(number, ".") {
+		parts := strings.SplitN(number, ".", 2)
+		integer := parts[0]
+		decimal := "00"
+		if len(parts) > 1 {
+			d := parts[1]
+			d = strings.Map(func(r rune) rune {
+				if unicode.IsDigit(r) {
+					return r
+				}
+				return -1
+			}, d)
+			if len(d) > 2 {
+				d = d[:2]
+			}
+			decimal = d
+			for len(decimal) < 2 {
+				decimal += "0"
+			}
+		}
+		number = integer + decimal
+	} else {
+		number = strings.Map(func(r rune) rune {
+			if unicode.IsDigit(r) {
+				return r
+			}
+			return -1
+		}, number)
+		if isPercent {
+			number += "00"
+		}
+	}
 
 	return number
 }

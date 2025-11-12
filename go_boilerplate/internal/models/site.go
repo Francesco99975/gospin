@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/__username__/go_boilerplate/cmd/boot"
+	"github.com/__username__/go_boilerplate/internal/enums"
 	"github.com/gorilla/sessions"
 )
 
@@ -40,9 +41,17 @@ type Site struct {
 	Styles       []string
 	SeoScripts   []string
 	PageScripts  []string
+	JSFile       string
+	JSIntegrity  string
+	CSSFile      string
+	CSSIntegrity string
 }
 
 func GetDefaultSite(title string) Site {
+	jsFile, jsIntegrity := GetJS()
+
+	cssFile, cssIntegrity := GetCSS()
+
 	return Site{
 		AppName:  "GoApp",
 		Title:    title,
@@ -56,6 +65,10 @@ func GetDefaultSite(title string) Site {
 			Logo:         fmt.Sprintf("%s/assets/images/pwa-512x512.png", boot.Environment.URL),
 			ContactPoint: []ContactPoint{{Type: "Person", Telephone: "+1-202-555-0144", ContactType: "customer service"}},
 		},
+		JSFile:       jsFile,
+		JSIntegrity:  jsIntegrity,
+		CSSFile:      cssFile,
+		CSSIntegrity: cssIntegrity,
 	}
 }
 
@@ -66,7 +79,7 @@ func GetSessionOptions(remember bool) *sessions.Options {
 		maxAge = maxAge * 52 // One Year
 	}
 
-	if boot.Environment.GoEnv == "development" {
+	if boot.Environment.GoEnv == enums.Environments.DEVELOPMENT {
 		sameSite = http.SameSiteNoneMode
 
 		if remember {
@@ -81,7 +94,7 @@ func GetSessionOptions(remember bool) *sessions.Options {
 		Path:     "/",
 		MaxAge:   maxAge,
 		HttpOnly: true,
-		Secure:   !(boot.Environment.GoEnv == "development"),
+		Secure:   !(boot.Environment.GoEnv == enums.Environments.DEVELOPMENT),
 		Domain:   boot.Environment.Host,
 		SameSite: sameSite,
 	}
