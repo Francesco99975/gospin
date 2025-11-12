@@ -1,13 +1,24 @@
 package controllers
 
 import (
+	//=="bytes"
+	//=="context"
 	"net/http"
+	//=="strconv"
+	//=="strings"
+
+	//=="github.com/google/uuid"
+
+	//=="github.com/__username__/go_boilerplate/internal/database"
+	//=="github.com/__username__/go_boilerplate/internal/repository"
 
 	"github.com/__username__/go_boilerplate/internal/helpers"
 	"github.com/__username__/go_boilerplate/internal/enums"
 	"github.com/__username__/go_boilerplate/internal/models"
 	"github.com/__username__/go_boilerplate/views"
+	//=="github.com/__username__/go_boilerplate/views/components"
 	"github.com/labstack/echo/v4"
+	//=="github.com/labstack/gommon/log"
 )
 
 func Examples() echo.HandlerFunc {

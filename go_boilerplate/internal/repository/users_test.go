@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Francesco99975/testone/internal/repository"
+	"github.com/__username__/go_boilerplate/internal/repository"
 	"github.com/google/uuid"
 	"github.com/pashagolub/pgxmock/v2"
 	"github.com/stretchr/testify/assert"
