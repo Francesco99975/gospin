@@ -13,3 +13,5 @@ dbp.*
 *.enc
 .github
 reports
+static
+*templ.go

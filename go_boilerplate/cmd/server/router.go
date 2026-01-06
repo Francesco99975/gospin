@@ -29,7 +29,7 @@ import (
 
 func createRouter(ctx context.Context) *echo.Echo {
 	e := echo.New()
-	e.Use(middleware.Logger())
+	e.Use(middleware.RequestLogger())
 	e.Use(middleware.RemoveTrailingSlash())
 	e.Use(middlewares.RateLimiter())
 	// Apply Gzip middleware, but skip it for /metrics

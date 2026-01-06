@@ -37,7 +37,11 @@ func runMigrations(dsn string) error {
 	if err != nil {
 		return err
 	}
-	defer db.Close()
+	defer func() {
+		if err := db.Close(); err != nil {
+			log.Fatalln(err)
+		}
+	}()
 	// Initialize the migration driver
 	driver, err := pgx.WithInstance(db, &pgx.Config{})
 	if err != nil {

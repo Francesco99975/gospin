@@ -19,6 +19,6 @@ func Notify(topic string, message string) {
 
 	if resp != nil {
 		log.Debugf("Notification sent with status code: %d", resp.StatusCode)
-		defer resp.Body.Close()
+		defer func() { _ = resp.Body.Close() }()
 	}
 }

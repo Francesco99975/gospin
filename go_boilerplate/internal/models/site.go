@@ -94,7 +94,7 @@ func GetSessionOptions(remember bool) *sessions.Options {
 		Path:     "/",
 		MaxAge:   maxAge,
 		HttpOnly: true,
-		Secure:   !(boot.Environment.GoEnv == enums.Environments.DEVELOPMENT),
+		Secure:   boot.Environment.GoEnv != enums.Environments.DEVELOPMENT,
 		Domain:   boot.Environment.Host,
 		SameSite: sameSite,
 	}

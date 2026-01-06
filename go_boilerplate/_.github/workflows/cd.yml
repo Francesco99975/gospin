@@ -1,47 +1,39 @@
 name: CD
 
 on:
-  push:
-    branches: [ master ]
-    paths-ignore:
-      - '**.md'
-      - 'docs/**'
-    tags:
-      - 'v*'
+  workflow_run:
+    workflows: ["CI"]   # Must exactly match the name: CI from your CI file
+    types:
+      - completed
 
 jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v5
 
-      # Create the .prod.env file from GitHub secrets
-      - name: Create production environment file
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Install Trivy
         run: |
-          echo "GO_ENV=${{ secrets.GO_ENV }}" > .prod.env
-          echo "PORT=${{ secrets.PORT }}" >> .prod.env
-          echo "HOST=${{ secrets.HOST }}" >> .prod.env
-          echo "DSN=${{ secrets.DSN }}" >> .prod.env
-
-      - name: Set up Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: '1.23.4'
-          cache: true
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh \
+            | sh -s -- -b /usr/local/bin
+          trivy --version
 
       - name: Build Docker image
         run: make build
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
-          name: go_boilerplate-image
-          path: go_boilerplate.tar
-          retention-days: 7
-
+          name: reviews-image
+          path: reviews.tar
+          retention-days: 1
       - name: Upload docker-compose file
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: docker-compose
           path: docker-compose.yml
@@ -51,46 +43,55 @@ jobs:
     name: Deploy to Production
     needs: build
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     environment:
       name: production
-      url: https://go_boilerplate.example.com
+      url: https://poc.reviews.urx.ink
     steps:
       - name: Download Docker image
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
-          name: go_boilerplate-image
+          name: reviews-image
 
       - name: Download docker-compose
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: docker-compose
 
-      - name: Set up SSH
-        uses: webfactory/ssh-agent@v0.8.0
+      - name: Connect to Tailnet
+        uses: tailscale/github-action@v4
         with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-client-secret: ${{ secrets.TS_OAUTH_CLIENT_SECRET }}
+          tags: tag:ci  # Adjust this tag as needed for your Tailnet ACLs
+
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.9.1
+        with:
+          ssh-private-key: ${{ secrets.SERVER_SSH_KEY }}
 
       - name: Add host key
         run: |
           mkdir -p ~/.ssh
-          ssh-keyscan example.com >> ~/.ssh/known_hosts
+          ssh-keyscan avalon >> ~/.ssh/known_hosts
 
       - name: Deploy to production
         run: |
           # Transfer files to production server
-          scp go_boilerplate.tar docker-compose.yml __username__@example.com:~/apps/go_boilerplate/
+          scp reviews.tar docker-compose.yml user@server:~/apps/reviews/
 
           # SSH into server and deploy
-          ssh __username__@example.com << 'EOF'
-            cd ~/apps/go_boilerplate
-            docker load < go_boilerplate.tar
+          ssh user@server << 'EOF'
+            cd ~/apps/reviews
+            pwd
+            docker load < reviews.tar
             docker compose up -d
+            rm reviews.tar
             docker system prune -f
           EOF
 
       - name: Verify deployment
         run: |
           # Give the service some time to start
-          sleep 10
-          curl -sSf https://go_boilerplate.example.com/healthcheck || exit 1
+          sleep 20
+          curl -sSf --connect-timeout 10 --max-time 10 --retry 12 --retry-delay 5 https://poc.reviews.urx.ink/healthcheck || exit 1

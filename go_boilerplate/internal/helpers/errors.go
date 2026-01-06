@@ -31,7 +31,7 @@ func (ge *GenericError) Stringify() string {
 
 func SendReturnedGenericJSONError(c echo.Context, err GenericError, r *Reporter) error {
 	monitoring.RecordError(fmt.Sprintf("%d", err.Code))
-	log.Errorf(err.Stringify())
+	log.Error(err.Stringify())
 
 	if r != nil {
 		_ = r.Report(SeverityLevels.ERROR, err.Stringify())
@@ -42,7 +42,7 @@ func SendReturnedGenericJSONError(c echo.Context, err GenericError, r *Reporter)
 
 func SendReturnedGenericHTMLError(c echo.Context, err GenericError, r *Reporter) error {
 	monitoring.RecordError(fmt.Sprintf("%d", err.Code))
-	log.Errorf(err.Stringify())
+	log.Error(err.Stringify())
 
 	if r != nil {
 		_ = r.Report(SeverityLevels.ERROR, err.Stringify())
@@ -55,7 +55,7 @@ func SendReturnedGenericHTMLError(c echo.Context, err GenericError, r *Reporter)
 
 func SendReturnedHTMLErrorMessage(c echo.Context, err ErrorMessage, r *Reporter) error {
 	monitoring.RecordError(fmt.Sprintf("%d", err.Error.Code))
-	log.Errorf(err.Error.Stringify())
+	log.Error(err.Error.Stringify())
 
 	if r != nil {
 		_ = r.Report(SeverityLevels.ERROR, err.Error.Stringify())

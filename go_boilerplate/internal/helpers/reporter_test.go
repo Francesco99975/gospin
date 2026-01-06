@@ -53,7 +53,7 @@ func TestNewReporter_CreatesFileAndDir(t *testing.T) {
 
 	r, err := NewReporter(path)
 	require.NoError(t, err)
-	defer r.Close()
+	defer func() { _ = r.Close() }()
 	assert.FileExists(t, path)
 }
 
@@ -79,7 +79,7 @@ func TestReporter_Report_WritesCorrectFormat(t *testing.T) {
 			path := filepath.Join(dir, fmt.Sprintf("log_%s.log", tc.level))
 			r, err := NewReporter(path)
 			require.NoError(t, err)
-			defer r.Close()
+			defer func() { _ = r.Close() }()
 
 			require.NoError(t, r.Report(tc.level, tc.msg))
 
@@ -103,7 +103,7 @@ func TestReporter_Report_ConcurrentSafety(t *testing.T) {
 	path := filepath.Join(dir, "race.log")
 	r, err := NewReporter(path)
 	require.NoError(t, err)
-	defer r.Close()
+	defer func() { _ = r.Close() }()
 
 	var wg sync.WaitGroup
 	for i := 0; i < 100; i++ {
@@ -148,7 +148,7 @@ func TestReporter_Cleanup_RemovesOldFiles(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()
 	r, _ := NewReporter(filepath.Join(dir, "app.log"))
-	defer r.Close()
+	defer func() { _ = r.Close() }()
 
 	now := time.Now()
 	for _, name := range []string{"old1.log", "old2.log"} {
@@ -171,7 +171,7 @@ func TestReporter_Cleanup_IgnoresDirectories(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()
 	r, _ := NewReporter(filepath.Join(dir, "log.log"))
-	defer r.Close()
+	defer func() { _ = r.Close() }()
 
 	sub := filepath.Join(dir, "archive")
 	_ = os.Mkdir(sub, 0o755)
@@ -190,7 +190,7 @@ func TestReporter_Cleanup_IgnoresDirectories(t *testing.T) {
 func BenchmarkReporter_Report(b *testing.B) {
 	dir := b.TempDir()
 	r, _ := NewReporter(filepath.Join(dir, "bench.log"))
-	defer r.Close()
+	defer func() { _ = r.Close() }()
 
 	for b.Loop() {
 		_ = r.Report(SeverityLevels.INFO, "bench")
