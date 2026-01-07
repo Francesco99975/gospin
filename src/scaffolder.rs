@@ -59,6 +59,7 @@ pub fn scaffold(
     port: u32,
     db: bool,
     ws: bool,
+    doppler: bool,
 ) -> Result<(), ScaffError> {
     let username = match ghu {
         Some(u) => u,
@@ -93,6 +94,7 @@ pub fn scaffold(
         port,
         db,
         ws,
+        doppler,
     };
 
     let imports_set = dir_builder(root, format!("./{}", project), &injects)?;
@@ -157,6 +159,10 @@ pub fn scaffold(
         message: "tidy error -> ".to_owned() + &err.to_string(),
     })?;
 
+    run_command("make", &["fmt"]).map_err(|err| ScaffError {
+        message: "linting error -> ".to_owned() + &err.to_string(),
+    })?;
+
     run_command("make", &["lint"]).map_err(|err| ScaffError {
         message: "linting error -> ".to_owned() + &err.to_string(),
     })?;
@@ -199,6 +205,10 @@ fn dir_builder(
             continue;
         }
 
+        if prj_file.filename.ends_with(".env") && injects.doppler {
+            continue;
+        }
+
         prj_file.content = prj_file
             .content
             .replace("go_boilerplate", injects.project_name.as_str());
@@ -223,10 +233,24 @@ fn dir_builder(
             prj_file.content = prj_file.content.replace("#==", "");
             prj_file.content = prj_file.content.replace("==#", "");
         } else {
-            let re2 = Regex::new(r"(?s)(//=|#==).*?(==//|==#)").unwrap();
+            let re2 = Regex::new(r"(?s)(//===|#==).*?(===//|==#)").unwrap();
             prj_file.content = re2.replace_all(&prj_file.content, "").to_string();
 
             let re = Regex::new(r"(//|#)==[^\n]*\n").unwrap();
+            prj_file.content = re.replace_all(&prj_file.content, "").to_string();
+        }
+
+        if injects.doppler {
+            prj_file.content = prj_file.content.replace("//%%", "");
+            prj_file.content = prj_file.content.replace("#%%", "");
+
+            let re = Regex::new(r"(//|#)%-[^\n]*\n").unwrap();
+            prj_file.content = re.replace_all(&prj_file.content, "").to_string();
+        } else {
+            prj_file.content = prj_file.content.replace("//%-", "");
+            prj_file.content = prj_file.content.replace("#%-", "");
+
+            let re = Regex::new(r"(//|#)%%[^\n]*\n").unwrap();
             prj_file.content = re.replace_all(&prj_file.content, "").to_string();
         }
 

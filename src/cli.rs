@@ -4,7 +4,7 @@ use std::io::{self, BufRead, BufReader, Write};
 use std::process::{Command, Stdio};
 
 #[derive(Parser, Debug)]
-#[command(author = "Francesco Michele Barranca (kalairendev)", version = "0.2.0", about = "Gospin - GO Boilerplate Initiator", long_about = None)]
+#[command(author = "Francesco Michele Barranca (kalairendev)", version = "0.2.1", about = "Gospin - GO Boilerplate Initiator", long_about = None)]
 #[command(propagate_version = true)]
 pub struct Gospin {
     pub project: Option<String>,
@@ -20,6 +20,9 @@ pub struct Gospin {
 
     #[arg(short = 'w', long = "websockets", default_value = "false")]
     pub ws: bool,
+
+    #[arg(long = "doppler", default_value = "false")]
+    pub doppler: bool,
 }
 
 #[derive(Debug)]

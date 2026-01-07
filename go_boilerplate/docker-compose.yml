@@ -3,21 +3,29 @@ services:
     container_name: go_boilerplate
     image: go_boilerplate
     restart: unless-stopped
+    environment:
+      - GO_ENV
+      - HOST
+      - PORT
+      - DSN
+      - NTFY
+      - METRICS_SECRET
+      - PROMETHEUS
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:__port__/healthcheck"]
     labels:
+      - traefik.enable=true
       - traefik.http.routers.go_boilerplate.rule=Host(`go_boilerplate.example.com`)
       - traefik.http.routers.go_boilerplate.entrypoints=web,websecure
       - traefik.http.routers.go_boilerplate.service=go_boilerplate
       - traefik.http.services.go_boilerplate.loadbalancer.server.port=__port__
       - traefik.http.routers.go_boilerplate.tls=true
-      - traefik.http.routers.go_boilerplate.tls.certresolver=le
+      - traefik.http.routers.go_boilerplate.tls.certresolver=letsencrypt
       - traefik.http.middlewares.forwardedheaders.headers.customrequestheaders.X-Forwarded-Proto=https
       - traefik.http.middlewares.forwardedheaders.headers.customrequestheaders.X-Forwarded-For={ip}
       - traefik.http.middlewares.websocket-headers.headers.customrequestheaders.Upgrade=websocket
       - traefik.http.middlewares.websocket-headers.headers.customrequestheaders.Connection=Upgrade
-      - traefik.http.routers.go_boilerplate.middlewares=websocket-headers
-      - traefik.port=80
+      - traefik.http.routers.go_boilerplate.middlewares=websocket-headers,forwardedheaders
     networks:
       - go_boilerplatenet
       - proxy

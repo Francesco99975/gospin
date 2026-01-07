@@ -62,7 +62,7 @@ jobs:
         uses: tailscale/github-action@v4
         with:
           oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
-          oauth-client-secret: ${{ secrets.TS_OAUTH_CLIENT_SECRET }}
+          oauth-secret: ${{ secrets.TS_OAUTH_CLIENT_SECRET }}
           tags: tag:ci  # Adjust this tag as needed for your Tailnet ACLs
 
       - name: Set up SSH
@@ -85,13 +85,8 @@ jobs:
             cd ~/apps/reviews
             pwd
             docker load < reviews.tar
-            docker compose up -d
+            #%-docker compose up -d
+            #%%doppler run -- docker compose up -d
             rm reviews.tar
             docker system prune -f
           EOF
-
-      - name: Verify deployment
-        run: |
-          # Give the service some time to start
-          sleep 20
-          curl -sSf --connect-timeout 10 --max-time 10 --retry 12 --retry-delay 5 https://poc.reviews.urx.ink/healthcheck || exit 1

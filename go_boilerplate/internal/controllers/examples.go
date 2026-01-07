@@ -34,7 +34,7 @@ func Examples() echo.HandlerFunc {
 	}
 }
 
-//==func FetchAllUsers() echo.HandlerFunc {
+//===func FetchAllUsers() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		repo := repository.New(database.Pool())
 
@@ -169,7 +169,7 @@ func DeleteUser() echo.HandlerFunc {
 
 		return c.Blob(http.StatusOK, "text/html; charset=utf-8", buf.Bytes())
 	}
-}==//
+}===//
 
 func BelowFormError() echo.HandlerFunc {
 	return func(c echo.Context) error {

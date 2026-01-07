@@ -19,4 +19,5 @@ pub struct Injectables {
     pub port: u32,
     pub db: bool,
     pub ws: bool,
+    pub doppler: bool,
 }

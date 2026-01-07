@@ -14,8 +14,8 @@ COPY . .
 # Prepare Go modules
 RUN go mod tidy
 
-# Rename prod env
-RUN mv .prod.env .env
+
+#%-RUN mv .prod.env .env
 
 # -----------------------------
 # Client Build
@@ -50,7 +50,7 @@ RUN apk update && apk upgrade && apk --no-cache add ca-certificates
 WORKDIR /go/bin
 
 COPY --from=build /go/src/app/bin /go/bin
-COPY --from=build /go/src/app/.env /go/bin/
+#%-COPY --from=build /go/src/app/.env /go/bin/
 COPY --from=build /go/src/app/static /go/bin/static
 COPY --from=build /go/src/app/sql /go/bin/sql
 

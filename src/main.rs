@@ -17,6 +17,7 @@ fn main() {
             args.port.parse::<u32>().unwrap_or(8080),
             args.db,
             args.ws,
+            args.doppler,
         ) {
             Ok(_) => println!("GO Project Created"),
             Err(err) => eprintln!("{}", err.to_string()),
