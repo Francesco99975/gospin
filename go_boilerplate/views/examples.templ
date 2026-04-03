@@ -1,11 +1,13 @@
 package views
 
-import "github.com/__username__/go_boilerplate/internal/models"
-import "github.com/__username__/go_boilerplate/views/layouts"
-import "github.com/__username__/go_boilerplate/views/icons"
-import "github.com/__username__/go_boilerplate/views/components"
+import (
+	"github.com/Francesco99975/gosot/internal/config"
+	"github.com/Francesco99975/gosot/views/components"
+	"github.com/Francesco99975/gosot/views/icons"
+	"github.com/Francesco99975/gosot/views/layouts"
+)
 
-templ Examples(site models.Site) {
+templ Examples(site config.Site) {
 	@layouts.Base(site) {
 		<main class="flex-1 w-full">
 			<div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16 max-w-7xl">
@@ -101,7 +103,7 @@ templ Examples(site models.Site) {
 						</div>
 					</div>
 				</section>
-				//==<!-- CRUD Example Section -->
+				<!-- CRUD Example Section -->
 				<section class="mb-16">
 					<h2 class="text-3xl font-bold mb-4 text-center">CRUD Operations Demo</h2>
 					<p class="text-primary/70 text-center mb-12 max-w-2xl mx-auto">
@@ -129,7 +131,7 @@ templ Examples(site models.Site) {
 							<!-- Users will be loaded here -->
 						</div>
 					</div>
-				</section>==//
+				</section>
 				<!-- Server Error States Section -->
 				<section class="mb-16">
 					<h2 class="text-3xl font-bold mb-4 text-center">Server Error States  Demo</h2>

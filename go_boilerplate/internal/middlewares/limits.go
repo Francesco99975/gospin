@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/__username__/go_boilerplate/cmd/boot"
+	"github.com/__username__/go_boilerplate/internal/apperrors"
 	"github.com/__username__/go_boilerplate/internal/enums"
-	"github.com/__username__/go_boilerplate/internal/helpers"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
@@ -35,7 +35,7 @@ func RateLimiter() echo.MiddlewareFunc {
 						"error": "Too many requests (dev mode)",
 					})
 				} else {
-					return helpers.SendReturnedGenericHTMLError(c, helpers.GenericError{Code: http.StatusTooManyRequests, Message: "Too many requests (dev mode)", UserMessage: "Too many requests (dev mode)"}, nil)
+					return apperrors.SendReturnedGenericHTMLError(c, apperrors.GenericError{Code: http.StatusTooManyRequests, Message: "Too many requests (dev mode)", UserMessage: "Too many requests (dev mode)"}, nil)
 				}
 			},
 			DenyHandler: func(c echo.Context, identifier string, err error) error {
@@ -45,7 +45,7 @@ func RateLimiter() echo.MiddlewareFunc {
 						"error": "Rate limit exceeded. Try again later.",
 					})
 				} else {
-					return helpers.SendReturnedGenericHTMLError(c, helpers.GenericError{Code: http.StatusTooManyRequests, Message: "Rate limit exceeded. Try again later. (dev mode)", UserMessage: "Rate limit exceeded. Try again later. (dev mode)"}, nil)
+					return apperrors.SendReturnedGenericHTMLError(c, apperrors.GenericError{Code: http.StatusTooManyRequests, Message: "Rate limit exceeded. Try again later. (dev mode)", UserMessage: "Rate limit exceeded. Try again later. (dev mode)"}, nil)
 				}
 			},
 		}
@@ -68,7 +68,7 @@ func RateLimiter() echo.MiddlewareFunc {
 						"error": "Too many requests",
 					})
 				} else {
-					return helpers.SendReturnedGenericHTMLError(c, helpers.GenericError{Code: http.StatusTooManyRequests, Message: "Too many requests"}, nil)
+					return apperrors.SendReturnedGenericHTMLError(c, apperrors.GenericError{Code: http.StatusTooManyRequests, Message: "Too many requests"}, nil)
 				}
 
 			},
@@ -80,7 +80,7 @@ func RateLimiter() echo.MiddlewareFunc {
 						"retryIn": "180",
 					})
 				} else {
-					return helpers.SendReturnedGenericHTMLError(c, helpers.GenericError{Code: http.StatusTooManyRequests, Message: "Rate limit exceeded. Try again later."}, nil)
+					return apperrors.SendReturnedGenericHTMLError(c, apperrors.GenericError{Code: http.StatusTooManyRequests, Message: "Rate limit exceeded. Try again later."}, nil)
 				}
 			},
 		}

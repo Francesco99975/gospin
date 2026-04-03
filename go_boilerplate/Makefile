@@ -6,10 +6,10 @@ endif
 
 # Project configuration
 PROJECT_NAME := go_boilerplate
-DB_CONTAINER := db_container
+DB_CONTAINER := go_boilerplatedb
 DB_USER := __username__
 DB_HOST := localhost
-DB_NAME := db
+DB_NAME := go_boilerplatedb
 SERVER_STAGING := __username__@staging.com
 SERVER_PRODUCTION := __username__@prod.com
 IMAGE_NAME := $(PROJECT_NAME):latest

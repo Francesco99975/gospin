@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	"github.com/__username__/go_boilerplate/cmd/boot"
-	"github.com/__username__/go_boilerplate/internal/helpers"
 	"github.com/__username__/go_boilerplate/internal/enums"
+	"github.com/__username__/go_boilerplate/internal/helpers"
 	"github.com/labstack/echo/v4"
 )
 

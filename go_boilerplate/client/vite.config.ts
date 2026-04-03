@@ -7,26 +7,26 @@ import manifestSRI from 'vite-plugin-manifest-sri';
 import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig({
-  base: "/assets/dist",
+  base: "/assets/dist/",
   css: {
     transformer: "lightningcss",
+
   },
   build: {
-    outDir: "../static/dist",
+    outDir: resolve(__dirname, "../static/dist"),
     manifest: true,
-    minify: "esbuild",
+    minify: true,
     target: "es2022",
     sourcemap: false,
     cssCodeSplit: true,
     reportCompressedSize: true,
     rollupOptions: {
-      input: fg
-        .sync(["src/*.ts", "src/js/**/*.ts"])
-        .map((file) => resolve(__dirname, file)),
-      output: {
-        entryFileNames: "[name]-[hash].js",
-        assetFileNames: "[name]-[hash].[ext]",
-      },
+      input: Object.fromEntries(
+        fg.sync(["src/*.ts", "src/js/**/*.ts"]).map((file) => {
+          const name = file.replace(/^src\//, "").replace(/\.ts$/, "");
+          return [name, resolve(__dirname, file)];
+        })
+      ),
     },
   },
   plugins: [
@@ -38,7 +38,7 @@ export default defineConfig({
       // 📄 No auto-injection (no HTML entry); we'll manual register
       injectRegister: null,
       // 🖼️ Web App Manifest (install prompt, etc.)
-      outDir: '../static',
+      outDir: resolve(__dirname, "../static"),
       filename: 'sw.js',
       manifest: {
         name: "GoApp", // Customize
@@ -77,7 +77,5 @@ export default defineConfig({
       algorithms: ['sha384'],  // Recommended: Stronger than sha256, browser-supported
     }),
   ],
-  esbuild: {
-    target: "es2022",
-  },
+
 });

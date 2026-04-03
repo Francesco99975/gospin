@@ -241,12 +241,16 @@ fn dir_builder(
         }
 
         if injects.doppler {
+            prj_file.content = prj_file
+                .content
+                .replace("__DOPPLER_CMD__", "doppler run --");
             prj_file.content = prj_file.content.replace("//%%", "");
             prj_file.content = prj_file.content.replace("#%%", "");
 
             let re = Regex::new(r"(//|#)%-[^\n]*\n").unwrap();
             prj_file.content = re.replace_all(&prj_file.content, "").to_string();
         } else {
+            prj_file.content = prj_file.content.replace("__DOPPLER_CMD__", "");
             prj_file.content = prj_file.content.replace("//%-", "");
             prj_file.content = prj_file.content.replace("#%-", "");
 

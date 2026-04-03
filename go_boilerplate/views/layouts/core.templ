@@ -1,9 +1,11 @@
 package layouts
 
-import "github.com/__username__/go_boilerplate/internal/models"
-import "github.com/__username__/go_boilerplate/views/components"
+import (
+	"github.com/Francesco99975/gosot/internal/config"
+	"github.com/Francesco99975/gosot/views/components"
+)
 
-templ CoreHTML(site models.Site) {
+templ CoreHTML(site config.Site) {
 	<!DOCTYPE html>
 	<html lang="en">
 		@components.SEO(site)
@@ -11,8 +13,7 @@ templ CoreHTML(site models.Site) {
 			{ children... }
 		</body>
 		for _, script := range site.PageScripts {
-			@components.Script(script, site.Nonce, "")
+			@components.Script(script.JSFile, site.Nonce, script.JSIntegrity)
 		}
 	</html>
 }
-

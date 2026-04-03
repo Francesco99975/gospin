@@ -3,15 +3,15 @@ package controllers
 import (
 	"net/http"
 
+	"github.com/__username__/go_boilerplate/internal/config"
 	"github.com/__username__/go_boilerplate/internal/helpers"
-	"github.com/__username__/go_boilerplate/internal/models"
 	"github.com/__username__/go_boilerplate/views"
 	"github.com/labstack/echo/v4"
 )
 
 func Index() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		data := models.GetDefaultSite("Home")
+		data := config.GetDefaultSite(c.Request())
 
 		data.CSRF = c.Get("csrf").(string)
 		data.Nonce = c.Get("nonce").(string)

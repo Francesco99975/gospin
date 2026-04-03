@@ -1,9 +1,11 @@
-package helpers
+package apperrors
 
 import (
 	"fmt"
 
+	"github.com/__username__/go_boilerplate/internal/config"
 	"github.com/__username__/go_boilerplate/internal/enums"
+	"github.com/__username__/go_boilerplate/internal/helpers"
 	"github.com/__username__/go_boilerplate/internal/models"
 	"github.com/__username__/go_boilerplate/internal/monitoring"
 	"github.com/__username__/go_boilerplate/views"
@@ -29,39 +31,39 @@ func (ge *GenericError) Stringify() string {
 	return fmt.Sprintf("[%d] %s <-- %v", ge.Code, ge.Message, ge.Errors)
 }
 
-func SendReturnedGenericJSONError(c echo.Context, err GenericError, r *Reporter) error {
+func SendReturnedGenericJSONError(c echo.Context, err GenericError, r *helpers.Reporter) error {
 	monitoring.RecordError(fmt.Sprintf("%d", err.Code))
 	log.Error(err.Stringify())
 
 	if r != nil {
-		_ = r.Report(SeverityLevels.ERROR, err.Stringify())
+		_ = r.Report(helpers.SeverityLevels.ERROR, err.Stringify())
 	}
 
 	return c.JSON(err.Code, models.JSONErrorResponse{Code: err.Code, Message: err.UserMessage, Errors: err.Errors})
 }
 
-func SendReturnedGenericHTMLError(c echo.Context, err GenericError, r *Reporter) error {
+func SendReturnedGenericHTMLError(c echo.Context, err GenericError, r *helpers.Reporter) error {
 	monitoring.RecordError(fmt.Sprintf("%d", err.Code))
 	log.Error(err.Stringify())
 
 	if r != nil {
-		_ = r.Report(SeverityLevels.ERROR, err.Stringify())
+		_ = r.Report(helpers.SeverityLevels.ERROR, err.Stringify())
 	}
 
-	html := MustRenderHTML(views.Error(models.GetDefaultSite("Error"), fmt.Sprintf("%d", err.Code), err.UserMessage))
+	html := helpers.MustRenderHTML(views.Error(config.GetDefaultSite(c.Request()), fmt.Sprintf("%d", err.Code), err.UserMessage))
 
 	return c.Blob(err.Code, "text/html", html)
 }
 
-func SendReturnedHTMLErrorMessage(c echo.Context, err ErrorMessage, r *Reporter) error {
+func SendReturnedHTMLErrorMessage(c echo.Context, err ErrorMessage, r *helpers.Reporter) error {
 	monitoring.RecordError(fmt.Sprintf("%d", err.Error.Code))
 	log.Error(err.Error.Stringify())
 
 	if r != nil {
-		_ = r.Report(SeverityLevels.ERROR, err.Error.Stringify())
+		_ = r.Report(helpers.SeverityLevels.ERROR, err.Error.Stringify())
 	}
 
-	html := MustRenderHTML(components.ErrorMsg(err.Error.UserMessage, err.Box, err.Persistance))
+	html := helpers.MustRenderHTML(components.ErrorMsg(err.Error.UserMessage, err.Box, err.Persistance))
 
 	return c.Blob(err.Error.Code, "text/html", html)
 }

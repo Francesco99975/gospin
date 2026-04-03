@@ -30,4 +30,3 @@ func MustRenderHTML(page templ.Component) []byte {
 
 	return buf.Bytes()
 }
-

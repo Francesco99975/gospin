@@ -1,29 +1,36 @@
 package controllers
 
 import (
-	//=="bytes"
-	//=="context"
 	"net/http"
-	//=="strconv"
-	//=="strings"
+	//--
+	"bytes"
+	"context"
+	"strconv"
+	"strings"
 
-	//=="github.com/google/uuid"
+	"github.com/__username__/go_boilerplate/views/components"
+	"github.com/labstack/gommon/log"
 
-	//=="github.com/__username__/go_boilerplate/internal/database"
-	//=="github.com/__username__/go_boilerplate/internal/repository"
+	--//
 
-	"github.com/__username__/go_boilerplate/internal/helpers"
+	"github.com/google/uuid"
+
+	"github.com/__username__/go_boilerplate/internal/apperrors"
+	"github.com/__username__/go_boilerplate/internal/config"
+	"github.com/__username__/go_boilerplate/internal/database"
+	"github.com/__username__/go_boilerplate/internal/repository"
+
 	"github.com/__username__/go_boilerplate/internal/enums"
-	"github.com/__username__/go_boilerplate/internal/models"
+	"github.com/__username__/go_boilerplate/internal/helpers"
+
 	"github.com/__username__/go_boilerplate/views"
-	//=="github.com/__username__/go_boilerplate/views/components"
+
 	"github.com/labstack/echo/v4"
-	//=="github.com/labstack/gommon/log"
 )
 
 func Examples() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		data := models.GetDefaultSite("Examples")
+		data := config.GetDefaultSite(c.Request())
 
 		data.CSRF = c.Get("csrf").(string)
 		data.Nonce = c.Get("nonce").(string)
@@ -34,14 +41,15 @@ func Examples() echo.HandlerFunc {
 	}
 }
 
-//===func FetchAllUsers() echo.HandlerFunc {
+//===
+func FetchAllUsers() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		repo := repository.New(database.Pool())
 
 		users, err := repo.GetAllUsers(context.Background())
 
 		if err != nil {
-			return helpers.SendReturnedGenericHTMLError(c, helpers.GenericError{Code: http.StatusInternalServerError, Message: err.Error(), UserMessage: "Error fetching users"}, nil)
+			return apperrors.SendReturnedGenericHTMLError(c, apperrors.GenericError{Code: http.StatusInternalServerError, Message: err.Error(), UserMessage: "Error fetching users"}, nil)
 		}
 
 		csrf := c.Get("csrf").(string)
@@ -67,12 +75,12 @@ func AddNewUser() echo.HandlerFunc {
 		})
 
 		if err != nil {
-			return helpers.SendReturnedGenericHTMLError(c, helpers.GenericError{Code: http.StatusInternalServerError, Message: err.Error(), UserMessage: "Error creating user"}, nil)
+			return apperrors.SendReturnedGenericHTMLError(c, apperrors.GenericError{Code: http.StatusInternalServerError, Message: err.Error(), UserMessage: "Error creating user"}, nil)
 		}
 
 		userCount, err := repo.CountUsers(context.Background())
 		if err != nil {
-			return helpers.SendReturnedGenericHTMLError(c, helpers.GenericError{Code: http.StatusInternalServerError, Message: err.Error(), UserMessage: "Error counting users"}, nil)
+			return apperrors.SendReturnedGenericHTMLError(c, apperrors.GenericError{Code: http.StatusInternalServerError, Message: err.Error(), UserMessage: "Error counting users"}, nil)
 		}
 
 		csrf := c.Get("csrf").(string)
@@ -94,13 +102,13 @@ func ToggeleUserEmail() echo.HandlerFunc {
 		uid, err := uuid.Parse(id)
 
 		if err != nil {
-			return helpers.SendReturnedGenericHTMLError(c, helpers.GenericError{Code: http.StatusInternalServerError, Message: err.Error(), UserMessage: "Error fetching user"}, nil)
+			return apperrors.SendReturnedGenericHTMLError(c, apperrors.GenericError{Code: http.StatusInternalServerError, Message: err.Error(), UserMessage: "Error fetching user"}, nil)
 		}
 
 		user, err := repo.GetUserByID(context.Background(), uid)
 
 		if err != nil {
-			return helpers.SendReturnedGenericHTMLError(c, helpers.GenericError{Code: http.StatusInternalServerError, Message: err.Error(), UserMessage: "Error fetching user"}, nil)
+			return apperrors.SendReturnedGenericHTMLError(c, apperrors.GenericError{Code: http.StatusInternalServerError, Message: err.Error(), UserMessage: "Error fetching user"}, nil)
 		}
 		var newEmail string
 		if strings.Contains(user.Email, ".dev") {
@@ -117,7 +125,7 @@ func ToggeleUserEmail() echo.HandlerFunc {
 		})
 
 		if err != nil {
-			return helpers.SendReturnedGenericHTMLError(c, helpers.GenericError{Code: http.StatusInternalServerError, Message: err.Error(), UserMessage: "Error updating user"}, nil)
+			return apperrors.SendReturnedGenericHTMLError(c, apperrors.GenericError{Code: http.StatusInternalServerError, Message: err.Error(), UserMessage: "Error updating user"}, nil)
 		}
 
 		html := helpers.MustRenderHTML(components.EmailPartial(updatedUser.ID.String(), updatedUser.Email))
@@ -137,21 +145,21 @@ func DeleteUser() echo.HandlerFunc {
 		log.Debugf("ID: %s", id)
 
 		if err != nil {
-			return helpers.SendReturnedGenericHTMLError(c, helpers.GenericError{Code: http.StatusInternalServerError, Message: err.Error(), UserMessage: "Error parsing UUID"}, nil)
+			return apperrors.SendReturnedGenericHTMLError(c, apperrors.GenericError{Code: http.StatusInternalServerError, Message: err.Error(), UserMessage: "Error parsing UUID"}, nil)
 		}
 
 		rows, err := repo.DeleteUser(context.Background(), uid)
 
 		if err != nil {
-			return helpers.SendReturnedGenericHTMLError(c, helpers.GenericError{Code: http.StatusInternalServerError, Message: err.Error(), UserMessage: "Error deleting user"}, nil)
+			return apperrors.SendReturnedGenericHTMLError(c, apperrors.GenericError{Code: http.StatusInternalServerError, Message: err.Error(), UserMessage: "Error deleting user"}, nil)
 		}
 		if rows == 0 {
-			return helpers.SendReturnedGenericHTMLError(c, helpers.GenericError{Code: http.StatusNotFound, Message: "User Not found for deletion", UserMessage: "User not found"}, nil)
+			return apperrors.SendReturnedGenericHTMLError(c, apperrors.GenericError{Code: http.StatusNotFound, Message: "User Not found for deletion", UserMessage: "User not found"}, nil)
 		}
 
 		userCount, err := repo.CountUsers(context.Background())
 		if err != nil {
-			return helpers.SendReturnedGenericHTMLError(c, helpers.GenericError{Code: http.StatusInternalServerError, Message: err.Error(), UserMessage: "Error counting users"}, nil)
+			return apperrors.SendReturnedGenericHTMLError(c, apperrors.GenericError{Code: http.StatusInternalServerError, Message: err.Error(), UserMessage: "Error counting users"}, nil)
 		}
 
 		// Build response with multiple fragments
@@ -169,12 +177,14 @@ func DeleteUser() echo.HandlerFunc {
 
 		return c.Blob(http.StatusOK, "text/html; charset=utf-8", buf.Bytes())
 	}
-}===//
+}
+
+===//
 
 func BelowFormError() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		return helpers.SendReturnedHTMLErrorMessage(c, helpers.ErrorMessage{
-			Error:       helpers.GenericError{Code: http.StatusBadRequest, Message: "Error in form", UserMessage: "I was programmed to be gone in 20 seconds"},
+		return apperrors.SendReturnedHTMLErrorMessage(c, apperrors.ErrorMessage{
+			Error:       apperrors.GenericError{Code: http.StatusBadRequest, Message: "Error in form", UserMessage: "I was programmed to be gone in 20 seconds"},
 			Box:         enums.Boxes.BELOW,
 			Persistance: "20000"}, nil)
 	}
@@ -182,8 +192,8 @@ func BelowFormError() echo.HandlerFunc {
 
 func ReplaceFormError() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		return helpers.SendReturnedHTMLErrorMessage(c, helpers.ErrorMessage{
-			Error:       helpers.GenericError{Code: http.StatusBadRequest, Message: "Error in form", UserMessage: "I was programmed to stay put"},
+		return apperrors.SendReturnedHTMLErrorMessage(c, apperrors.ErrorMessage{
+			Error:       apperrors.GenericError{Code: http.StatusBadRequest, Message: "Error in form", UserMessage: "I was programmed to stay put"},
 			Box:         enums.Boxes.REPLACE,
 			Persistance: ""}, nil)
 	}
@@ -191,8 +201,8 @@ func ReplaceFormError() echo.HandlerFunc {
 
 func ToastFormError() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		return helpers.SendReturnedHTMLErrorMessage(c, helpers.ErrorMessage{
-			Error:       helpers.GenericError{Code: http.StatusBadRequest, Message: "Error in form", UserMessage: "I was programmed to be gone in 3 seconds"},
+		return apperrors.SendReturnedHTMLErrorMessage(c, apperrors.ErrorMessage{
+			Error:       apperrors.GenericError{Code: http.StatusBadRequest, Message: "Error in form", UserMessage: "I was programmed to be gone in 3 seconds"},
 			Box:         enums.Boxes.TOAST_TR,
 			Persistance: "3000"}, nil)
 	}

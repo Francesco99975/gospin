@@ -1,13 +1,13 @@
 package layouts
 
 import (
-	"github.com/__username__/go_boilerplate/internal/models"
-	"github.com/__username__/go_boilerplate/views/components"
+	"github.com/Francesco99975/gosot/internal/config"
+	"github.com/Francesco99975/gosot/views/components"
 	"strconv"
 )
 
 // Base layout for unauthenticated pages
-templ Base(site models.Site) {
+templ Base(site config.Site) {
 	@CoreHTML(site) {
 		<div class="min-h-screen flex flex-col">
 			@components.Header(site)

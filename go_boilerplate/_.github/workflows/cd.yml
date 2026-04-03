@@ -29,8 +29,8 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v6
         with:
-          name: reviews-image
-          path: reviews.tar
+          name: go_boilerplate-image
+          path: go_boilerplate.tar
           retention-days: 1
       - name: Upload docker-compose file
         uses: actions/upload-artifact@v6
@@ -46,12 +46,12 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     environment:
       name: production
-      url: https://poc.reviews.urx.ink
+      url: https://go_boilerplate.example.com
     steps:
       - name: Download Docker image
         uses: actions/download-artifact@v7
         with:
-          name: reviews-image
+          name: go_boilerplate-image
 
       - name: Download docker-compose
         uses: actions/download-artifact@v7
@@ -73,20 +73,19 @@ jobs:
       - name: Add host key
         run: |
           mkdir -p ~/.ssh
-          ssh-keyscan avalon >> ~/.ssh/known_hosts
+          ssh-keyscan prod_server >> ~/.ssh/known_hosts
 
-      - name: Deploy to production
+      - name: Deploy to production # If using doppler, Remember to run: doppler setup on the prod server
         run: |
           # Transfer files to production server
-          scp reviews.tar docker-compose.yml user@server:~/apps/reviews/
+          scp go_boilerplate.tar docker-compose.yml user@server:~/apps/go_boilerplate/
 
           # SSH into server and deploy
-          ssh user@server << 'EOF'
-            cd ~/apps/reviews
+          ssh user@prod_server << 'EOF'
+            cd ~/apps/go_boilerplate
             pwd
-            docker load < reviews.tar
-            #%-docker compose up -d
-            #%%doppler run -- docker compose up -d
-            rm reviews.tar
+            docker load < go_boilerplate.tar
+            __DOPPLER_CMD__docker compose up -d
+            rm go_boilerplate.tar
             docker system prune -f
           EOF

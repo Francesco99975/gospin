@@ -1,9 +1,11 @@
 package views
 
-import "github.com/__username__/go_boilerplate/internal/models"
-import "github.com/__username__/go_boilerplate/views/layouts"
+import (
+	"github.com/Francesco99975/gosot/internal/config"
+	"github.com/Francesco99975/gosot/views/layouts"
+)
 
-templ Index(site models.Site) {
+templ Index(site config.Site) {
 	@layouts.Base(site) {
 		<main class="flex-1 w-full">
 			<div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16 max-w-7xl">

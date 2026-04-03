@@ -5,5 +5,5 @@ templ Stylesheet(src string, integrity string) {
 }
 
 templ PreloadStylesheet(src string, integrity string) {
-	<link href={ src } rel="preload" as="style" onload="this.rel='stylesheet'" integrity={ integrity }/>
+	<link href={ src } rel="preload" as="style" onload="this.rel='stylesheet'" integrity={ integrity } fetchPriority="high"/>
 }

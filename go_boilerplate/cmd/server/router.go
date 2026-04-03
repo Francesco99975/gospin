@@ -2,24 +2,26 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"path/filepath"
 	"strings"
 	"time"
-	"fmt"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/__username__/go_boilerplate/cmd/boot"
 	"github.com/__username__/go_boilerplate/internal/api"
+	"github.com/__username__/go_boilerplate/internal/config"
 	"github.com/__username__/go_boilerplate/internal/enums"
 	"github.com/__username__/go_boilerplate/internal/helpers"
 
-	//--"github.com/__username__/go_boilerplate/internal/connections"
+	//--
+	"github.com/__username__/go_boilerplate/internal/connections"
+	--//
 
 	"github.com/__username__/go_boilerplate/internal/controllers"
 	"github.com/__username__/go_boilerplate/internal/middlewares"
-	"github.com/__username__/go_boilerplate/internal/models"
 	"github.com/__username__/go_boilerplate/views"
 
 	"github.com/labstack/echo/v4"
@@ -62,9 +64,44 @@ func createRouter(ctx context.Context) *echo.Echo {
 		return c.File(filepath.Join("./static/dist", c.Param("*")))
 	})
 
-	//--wsManager := connections.NewManager(ctx)
+	e.GET("/sitemap.xml", func(c echo.Context) error {
+		sitemap := config.GetDefaultSite(c.Request()).Sitemap
 
-	//--e.GET("/ws", wsManager.ServeWS)
+		if sitemap == nil {
+			log.Warnf("Sitemap not found")
+			return c.NoContent(404)
+		}
+
+		return c.Blob(200, "application/xml", sitemap)
+	})
+
+	e.GET("/robots.txt", func(c echo.Context) error {
+		var content string
+
+		baseURL := boot.Environment.URL
+
+		if boot.Environment.GoEnv == enums.Environments.PRODUCTION {
+			content = fmt.Sprintf(`User-agent: *
+Allow: /
+
+Sitemap: %s/sitemap.xml
+`, baseURL)
+		} else {
+			content = fmt.Sprintf(`User-agent: *
+Disallow: /
+
+Sitemap: %s/sitemap.xml
+`, baseURL)
+		}
+
+		return c.Blob(200, "text/plain", []byte(content))
+	})
+
+	//--
+	wsManager := connections.NewManager(ctx)
+
+	e.GET("/ws", wsManager.ServeWS)
+	--//
 
 	web := e.Group("")
 
@@ -96,17 +133,21 @@ func createRouter(ctx context.Context) *echo.Echo {
 		},
 	}))
 
-	//--go wsManager.Run()
+	//--
+	go wsManager.Run()
+	--//
 
 	web.GET("/", controllers.Index())
 
 	web.GET("/examples", controllers.Examples())
-	//==web.GET("/examples/users", controllers.FetchAllUsers())
 
-	//==web.POST("/examples/users", controllers.AddNewUser())
-	//==web.PATCH("/examples/users/:id", controllers.ToggeleUserEmail())
-	//==web.DELETE("/examples/users/:id", controllers.DeleteUser())
+	//--
+	web.GET("/examples/users", controllers.FetchAllUsers())
 
+	web.POST("/examples/users", controllers.AddNewUser())
+	web.PATCH("/examples/users/:id", controllers.ToggeleUserEmail())
+	web.DELETE("/examples/users/:id", controllers.DeleteUser())
+	--//
 	web.POST("/errors/below", controllers.BelowFormError())
 	web.POST("/errors/replace", controllers.ReplaceFormError())
 	web.POST("/errors/toast", controllers.ToastFormError())
@@ -116,13 +157,16 @@ func createRouter(ctx context.Context) *echo.Echo {
 	apiv1 := apigrp.Group("/v1")
 	apiv1.POST("/cats", api.GetCats())
 
-
 	e.HTTPErrorHandler = serverErrorHandler
 
 	return e
 }
 
 func serverErrorHandler(err error, c echo.Context) {
+
+	if c.Response().Committed {
+		return
+	}
 	// Default to internal server error (500)
 	code := http.StatusInternalServerError
 	var message any = "Internal Server Error"
@@ -142,11 +186,8 @@ func serverErrorHandler(err error, c echo.Context) {
 			"status":  code,
 		})
 	} else {
-		if code == 404 {
-			message = "Page Not Found"
-		}
 		// Prepare data for rendering the error page (HTML)
-		data := models.GetDefaultSite("Error")
+		data := config.GetDefaultSite(c.Request())
 
 		html := helpers.MustRenderHTML(views.Error(data, fmt.Sprintf("%d", code), message.(string)))
 

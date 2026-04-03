@@ -1,7 +1,8 @@
-package models
+package config
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"sync"
@@ -43,16 +44,16 @@ func LoadManifest(staticDir string) error {
 
 // GetJS returns file name + integrity for the main entry.
 // In your case: "src/index.ts"
-func GetJS() (file, integrity string) {
-	if asset, ok := manifest["src/index.ts"]; ok {
+func GetJS(scriptName string) (file, integrity string) {
+	if asset, ok := manifest[fmt.Sprintf("src/%s.ts", scriptName)]; ok {
 		return asset.File, asset.Integrity
 	}
 	return "index.js", "" // fallback (dev)
 }
 
 // GetCSS returns the first CSS file (you only have one)
-func GetCSS() (file, integrity string) {
-	if asset, ok := manifest["src/index.ts"]; ok && len(asset.CSS) > 0 {
+func GetCSS(scriptName string) (file, integrity string) {
+	if asset, ok := manifest[fmt.Sprintf("src/%s.ts", scriptName)]; ok && len(asset.CSS) > 0 {
 		// CSS files are also in manifest if they are imported
 		// but in your case they are listed under the entry.
 		// We'll resolve them below via GetAssetIntegrity.
