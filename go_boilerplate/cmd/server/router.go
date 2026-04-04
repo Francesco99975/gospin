@@ -141,13 +141,13 @@ Sitemap: %s/sitemap.xml
 
 	web.GET("/examples", controllers.Examples())
 
-	//--
+	//===
 	web.GET("/examples/users", controllers.FetchAllUsers())
 
 	web.POST("/examples/users", controllers.AddNewUser())
 	web.PATCH("/examples/users/:id", controllers.ToggeleUserEmail())
 	web.DELETE("/examples/users/:id", controllers.DeleteUser())
-	--//
+	===//
 	web.POST("/errors/below", controllers.BelowFormError())
 	web.POST("/errors/replace", controllers.ReplaceFormError())
 	web.POST("/errors/toast", controllers.ToastFormError())

@@ -160,7 +160,7 @@ pub fn scaffold(
     })?;
 
     run_command("make", &["fmt"]).map_err(|err| ScaffError {
-        message: "linting error -> ".to_owned() + &err.to_string(),
+        message: "fmt error -> ".to_owned() + &err.to_string(),
     })?;
 
     run_command("make", &["lint"]).map_err(|err| ScaffError {
@@ -219,31 +219,13 @@ fn dir_builder(
             .content
             .replace("__port__", injects.port.to_string().as_str());
 
-        if injects.ws {
-            prj_file.content = prj_file.content.replace("//--", "");
-            prj_file.content = prj_file.content.replace("#--", "");
-        } else {
-            let re = Regex::new(r"(//|#)--[^\n]*\n").unwrap();
-            prj_file.content = re.replace_all(&prj_file.content, "").to_string();
-        }
-
-        if injects.db {
-            prj_file.content = prj_file.content.replace("//==", "");
-            prj_file.content = prj_file.content.replace("==//", "");
-            prj_file.content = prj_file.content.replace("#==", "");
-            prj_file.content = prj_file.content.replace("==#", "");
-        } else {
-            let re2 = Regex::new(r"(?s)(//===|#==).*?(===//|==#)").unwrap();
-            prj_file.content = re2.replace_all(&prj_file.content, "").to_string();
-
-            let re = Regex::new(r"(//|#)==[^\n]*\n").unwrap();
-            prj_file.content = re.replace_all(&prj_file.content, "").to_string();
-        }
+        prj_file.content = process_feature(prj_file.content, injects.ws, "ws");
+        prj_file.content = process_feature(prj_file.content, injects.db, "db");
 
         if injects.doppler {
             prj_file.content = prj_file
                 .content
-                .replace("__DOPPLER_CMD__", "doppler run --");
+                .replace("__DOPPLER_CMD__", "doppler run -- ");
             prj_file.content = prj_file.content.replace("//%%", "");
             prj_file.content = prj_file.content.replace("#%%", "");
 
@@ -275,7 +257,7 @@ fn dir_builder(
     if dir.dirname == "client" {
         env::set_current_dir(Path::new(&depth)).expect("Could not set dir");
         println!("{} Running npm install...", style("[1/5]").bold().dim());
-        run_command("npm", &["install"]).map_err(|err| ScaffError {
+        run_command("npm", &["install", "--legacy-peer-deps"]).map_err(|err| ScaffError {
             message: "npm install error -> ".to_owned() + &err.to_string(),
         })?;
 
@@ -292,4 +274,39 @@ fn dir_builder(
     }
 
     Ok(imports_set)
+}
+
+// Add this function
+fn process_feature(mut content: String, enabled: bool, feature: &str) -> String {
+    let (open, close) = match feature {
+        "ws" => ("//--", "--//"),
+        "db" => ("//===", "===//"),
+        "doppler" => ("//%%", "%%//"),
+        _ => return content,
+    };
+
+    if enabled {
+        // Keep the code, just strip markers
+        content = content.replace(open, "").replace(close, "");
+    } else {
+        // Remove whole blocks including markers
+        let block_pattern = format!(r"(?s){}.*?{}", regex::escape(open), regex::escape(close));
+        let re_block = Regex::new(&block_pattern).unwrap();
+        content = re_block.replace_all(&content, "").to_string();
+
+        // Also remove any leftover single marker lines
+        let line_pattern = format!(
+            r"(?m)^[ \t]*({}|{}).*$",
+            regex::escape(open),
+            regex::escape(close)
+        );
+        let re_line = Regex::new(&line_pattern).unwrap();
+        content = re_line.replace_all(&content, "").to_string();
+    }
+
+    // Clean up extra blank lines created by removal
+    let blank_re = Regex::new(r"\n\s*\n\s*\n").unwrap();
+    content = blank_re.replace_all(&content, "\n\n").to_string();
+
+    content
 }

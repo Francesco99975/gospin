@@ -5,10 +5,10 @@ import (
 	"net"
 	"os"
 
-	//--
+	//===
 	"regexp"
 
-	--//
+	===//
 
 	"github.com/__username__/go_boilerplate/internal/enums"
 	//%-"github.com/joho/godotenv"
@@ -38,9 +38,9 @@ type Config struct {
 	Port  string
 	Host  string
 	GoEnv enums.Environment
-	//--
+	//===
 	DSN string
-	--//
+	===//
 	NTFY         string
 	NTFYToken    string
 	URL          string
@@ -64,12 +64,12 @@ func LoadEnvVariables() error {
 	Environment.Port = os.Getenv("PORT")
 	Environment.Host = os.Getenv("HOST")
 	Environment.GoEnv = enums.GetEnvironmentFromString(os.Getenv("GO_ENV"))
-	//--
+	//===
 	Environment.DSN = os.Getenv("DSN")
 	if !isValidDSN(Environment.DSN) {
 		return fmt.Errorf("invalid DSN: %s", Environment.DSN)
 	}
-	--//
+	===//
 	Environment.NTFY = os.Getenv("NTFY")
 	Environment.NTFYToken = os.Getenv("NTFY_TOKEN")
 	Environment.MetricSecret = os.Getenv("METRIC_SECRET")

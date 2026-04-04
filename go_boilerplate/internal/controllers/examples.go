@@ -2,23 +2,22 @@ package controllers
 
 import (
 	"net/http"
-	//--
+	//===
 	"bytes"
 	"context"
 	"strconv"
 	"strings"
 
+	"github.com/__username__/go_boilerplate/internal/database"
+	"github.com/__username__/go_boilerplate/internal/repository"
 	"github.com/__username__/go_boilerplate/views/components"
+	"github.com/google/uuid"
 	"github.com/labstack/gommon/log"
 
-	--//
-
-	"github.com/google/uuid"
+	===//
 
 	"github.com/__username__/go_boilerplate/internal/apperrors"
 	"github.com/__username__/go_boilerplate/internal/config"
-	"github.com/__username__/go_boilerplate/internal/database"
-	"github.com/__username__/go_boilerplate/internal/repository"
 
 	"github.com/__username__/go_boilerplate/internal/enums"
 	"github.com/__username__/go_boilerplate/internal/helpers"

@@ -61,7 +61,7 @@ func (client *Client) read() {
 		log.Debugf("event received: %v", request)
 
 		if err := client.manager.routeEvent(request, client); err != nil {
-			log.Errorf("Error handeling Message: ", err)
+			log.Errorf("Error handeling Message: %v", err)
 		}
 	}
 }
@@ -102,7 +102,7 @@ func (client *Client) write() {
 			log.Debug("Ping")
 			// Send the Ping
 			if err := client.socket.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
-				log.Errorf("writemsg: ", err)
+				log.Errorf("writemsg: %v", err)
 				return // return to break this goroutine triggeing cleanup
 			}
 		}

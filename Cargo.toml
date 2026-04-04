@@ -1,8 +1,8 @@
 [package]
 build = "build.rs"
 name = "gospin"
-version = "0.2.1"
-authors = ["Francesco Michele Barranca kalairendev@francescobarranca.dev"]
+version = "0.2.2"
+authors = ["Francesco Michele Barranca kalairendev@tutanota.com"]
 license = "BSD-3-Clause"
 description = "A cli tool to create a boilerplate GO project"
 readme = "README.md"
