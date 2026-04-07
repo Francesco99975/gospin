@@ -3,10 +3,15 @@ services:
     container_name: go_boilerplatedb
     image: postgres:15.3-alpine
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U __username__ -d go_boilerplatedb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     labels:
       - traefik.enable=false
     networks:
-      - reviewsnet
+      - go_boilerplatenet
     environment:
       - POSTGRES_USER
       - POSTGRES_PASSWORD
@@ -21,6 +26,9 @@ services:
     container_name: go_boilerplate
     image: go_boilerplate
     restart: unless-stopped
+    depends_on:
+      go_boilerplatedb:
+        condition: service_healthy
     environment:
       - GO_ENV
       - HOST

@@ -4,7 +4,6 @@ import (
 	"encoding/xml"
 	"fmt"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/__username__/go_boilerplate/cmd/boot"
@@ -102,30 +101,12 @@ type Site struct {
 func generateSitemap() []byte {
 	baseURL := boot.Environment.URL
 
-	infoIndex, err := os.Stat("views/index.templ")
-	if err != nil {
-		return nil
-	}
-	lastModIndex := infoIndex.ModTime()
-
-	infoPrivacy, err := os.Stat("views/privacy.templ")
-	if err != nil {
-		return nil
-	}
-	lastModPrivacy := infoPrivacy.ModTime()
-
-	infoTerms, err := os.Stat("views/terms.templ")
-	if err != nil {
-		return nil
-	}
-	lastModTerms := infoTerms.ModTime()
-
 	urls := []URL{
-		{Loc: baseURL + "/", LastMod: lastModIndex.Format("2006-01-02")},
+		{Loc: baseURL + "/", LastMod: time.Now().Format("2006-01-02")},
 		{Loc: baseURL + "/gallery"},
 		{Loc: baseURL + "/about"},
-		{Loc: baseURL + "/privacy", LastMod: lastModPrivacy.Format("2006-01-02")},
-		{Loc: baseURL + "/terms", LastMod: lastModTerms.Format("2006-01-02")},
+		{Loc: baseURL + "/privacy", LastMod: time.Now().Format("2006-01-02")},
+		{Loc: baseURL + "/terms", LastMod: time.Now().Format("2006-01-02")},
 	}
 
 	sitemap := URLSet{

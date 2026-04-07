@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -27,13 +27,13 @@ jobs:
         run: make build
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: go_boilerplate-image
           path: go_boilerplate.tar
           retention-days: 1
       - name: Upload docker-compose file
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: docker-compose
           path: docker-compose.yml
@@ -49,12 +49,12 @@ jobs:
       url: https://go_boilerplate.example.com
     steps:
       - name: Download Docker image
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: go_boilerplate-image
 
       - name: Download docker-compose
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: docker-compose
 
@@ -66,7 +66,7 @@ jobs:
           tags: tag:ci  # Adjust this tag as needed for your Tailnet ACLs
 
       - name: Set up SSH
-        uses: webfactory/ssh-agent@v0.9.1
+        uses: webfactory/ssh-agent@v0.10.0
         with:
           ssh-private-key: ${{ secrets.SERVER_SSH_KEY }}
 
@@ -78,10 +78,10 @@ jobs:
       - name: Deploy to production # If using doppler, Remember to run: doppler setup on the prod server
         run: |
           # Transfer files to production server
-          scp go_boilerplate.tar docker-compose.yml user@server:~/apps/go_boilerplate/
+          scp go_boilerplate.tar docker-compose.yml __username__@prod_server:~/apps/go_boilerplate/
 
           # SSH into server and deploy
-          ssh user@prod_server << 'EOF'
+          ssh __username__@prod_server << 'EOF'
             cd ~/apps/go_boilerplate
             pwd
             docker load < go_boilerplate.tar

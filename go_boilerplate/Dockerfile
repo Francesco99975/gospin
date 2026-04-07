@@ -11,9 +11,6 @@ WORKDIR /go/src/app
 # Copy everything for build
 COPY . .
 
-# Prepare Go modules
-RUN go mod tidy
-
 #%-RUN mv .prod.env .env
 
 # -----------------------------
@@ -21,7 +18,7 @@ RUN go mod tidy
 # -----------------------------
 WORKDIR /go/src/app/client
 
-RUN npm install
+RUN npm install --legacy-peer-deps
 RUN npm run build
 
 # -----------------------------
@@ -29,7 +26,7 @@ RUN npm run build
 # -----------------------------
 WORKDIR /go/src/app/views
 
-RUN go install github.com/a-h/templ/cmd/templ@0.3.857
+RUN go install github.com/a-h/templ/cmd/templ@latest
 RUN templ generate
 
 # -----------------------------
@@ -37,7 +34,10 @@ RUN templ generate
 # -----------------------------
 WORKDIR /go/src/app
 
-RUN GOOS=linux go build -ldflags="-s -w" -o ./bin/gosot ./cmd/server/*.go
+# Prepare Go modules
+RUN go mod tidy
+
+RUN GOOS=linux go build -ldflags="-s -w" -o ./bin/go_boilerplate ./cmd/server/*.go
 
 # -----------------------------
 # Release Phase
@@ -53,6 +53,6 @@ COPY --from=build /go/src/app/bin /go/bin
 COPY --from=build /go/src/app/static /go/bin/static
 COPY --from=build /go/src/app/sql /go/bin/sql
 
-EXPOSE 3388
+EXPOSE __port__
 
-ENTRYPOINT ["/go/bin/gosot", "--port", "3388"]
+ENTRYPOINT ["/go/bin/go_boilerplate", "--port", "__port__"]
